@@ -1,0 +1,82 @@
+<!doctype html>
+<html>
+ <head>
+    <title>XMR Tests</title>
+	
+	<script src="js/jquery.min.js"></script>
+	<script src="js/crc32.js"></script>
+	<script src="js/mnemonic.js"></script>
+	<script src="js/biginteger.js"></script>
+	<script src="js/config.js"></script>
+	<script src="js/crypto.js"></script>
+	<script src="js/base58.js"></script>
+	<script src="js/cn_util.js"></script>
+	<script src="js/site.js"></script>
+	<script src="js/qrcode.js"></script>
+	<script src="js/sha3.js"></script>
+   
+	<style>
+	input {font-family: Lucida Console, monospace;}
+	.centerDiv {width: 1250px; margin: 0 auto;}
+	textarea {vertical-align: top;}
+	h1 {width: 300px; margin: 0 0; background-color: #ddd;}
+	h1, h2 {text-align: center;}
+	body {background-color: #666;}
+	#main-wrapper {width: 1200px; margin: 0 auto;}
+	#txTest, #results-wrapper {background-color: #ddd; padding-top: 1px;}
+	#testButton {float: right; margin-right: 50px; margin-top: 100px;}
+	.validYes {color: #000;}
+	.validNo {color: #d00;}
+	.boxes {}
+	#txHash{margin-left: 64px;}
+	#addr{margin-left: 5px;}
+	#private{margin-left: 101px;}
+	#results{font-family: monospace; margin-left: 10px;}
+	</style>
+ </head>
+ <body>
+	<div id="main-wrapper">
+	<h1>Check Transaction</h1>
+	<div id="txTest">
+	<h2>Check if any of a transaction&#39;s outputs are yours
+	<br>OR<br>
+	Prove you sent funds to a particular recipient</h2>
+	
+
+	<label for="txHash">&nbsp;1. Transaction Hash:</label>
+	<input class="boxes" type="text" id="txHash" placeholder="64 hex chars" size="66" />
+	
+	
+	<br>
+	<br>
+	<label id="privateLabel" for="private">&nbsp;2. Private Key:</label>
+	<input class="boxes" type="text" id="private" placeholder="64 hex chars" size="66" />
+	<select id="type">
+	<option>Private Viewkey</option>
+	<option>Tx Private Key</option>
+	</select>
+
+	<br>
+	<br>
+	
+	<label for="addr">&nbsp;3. Recipient&#39;s Public Address:</label>
+	<input class="boxes" type="text" id="addr" placeholder="95 or 106 base58 chars" size="100" />
+	<button onclick="checkTx();">Check</button>
+	<br>
+	<p style="font-size:80%; text-align:center; padding-bottom: 5px;">Note: this site operates completely on client-side Javascript; no data is ever sent to the web server.<br>
+	Big thanks to <a href="http://moneroblocks.info/">MoneroBlocks</a> for the transaction data API, without which this page would not work.</p>
+	</div>
+
+	<br>
+	<div id="results-wrapper">
+	<h2>Results:</h2>
+	<div id="results">
+	
+	</div>
+	<br>
+	</div>
+	
+	</div>
+ </body>
+ 
+ </html>

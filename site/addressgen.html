@@ -1,0 +1,182 @@
+<!doctype html>
+<html>
+ <head>
+    <title>XMR Address Generator</title>
+	<meta charset="utf-8">
+	<script src="js/jquery.min.js"></script>
+	<script src="js/crc32.js"></script>
+	<script src="js/mnemonic.js"></script>
+	<script src="js/biginteger.js"></script>
+	<script src="js/config.js"></script>
+	<script src="js/crypto.js"></script>
+	<script src="js/base58.js"></script>
+	<script src="js/slow-hash.js"></script>
+	<script src="js/sha3.js"></script>
+	<script src="js/cn_util.js?2"></script>
+	<script src="js/site.js"></script>
+   
+	<style>
+	input {font-family: Lucida Console, monospace;}
+	.centerDiv {width: 1260px; margin: 0 auto;}
+	textarea {vertical-align: top;}
+	.prView {margin-left: 20px;}
+	.puView {margin-left: 21px;}
+	#payID {margin-left: 300px;}
+	h1 {width: 300px; margin: 0 0; background-color: #ddd;}
+	h1, h2, p {text-align: center;}
+	#addrGen > h2 {margin-top: 0px;}
+	body {background-color: #666;}
+	#main-wrapper {width: 1450px; margin: 0 auto;}
+	#addrGen, #enc-wrapper, #fake-multisig-wrapper {background-color: #ddd; padding-top: 1px;}
+	#randomButtons {float: right; margin-right: 10px;}
+	/*#paymentID {display: none;}
+	#pubAddrNetByte {display: none;}*/
+	#coinSelect {padding: 20px 0px 0px 20px; background-color: #ddd;}
+	#encKey {margin-left: 73px;}
+	#encKey2 {margin-left: 69px;}
+	#addrPt2 {margin-left: 30px;}
+	#derivedAddr {margin-left: 42px;}
+	#mnemonicPt2 {margin-left: 57px;}
+
+	</style>
+
+ </head>
+ <body>
+	<div id="main-wrapper">
+		<h1>Cryptonote</h1>
+		<div id="coinSelect">
+			<select id="coinType" onchange="coinType(this.value);">
+				<option value="12">Standard XMR</option>
+				<option value="01">BBR</option>
+				<option value="48">(the real) DaSH</option>
+				<option value="b201">AEON</option>
+				<option value="35">XMR Testnet</option>
+				<option value="13">XMR Integrated</option>
+				<option value="11">XMR Truncated</option>
+			</select>
+			<label for="pubAddrNetByte">&nbsp;Network Byte:&nbsp;</label>
+			<input type="text" id="pubAddrNetByte" value="12" size="4" disabled />
+			&nbsp;&nbsp;
+			<label for="mnDict">Mnemonic Dictionary</label>
+			<select id="mnDict">
+				<option value="english">English (Monero default)</option>
+				<option value="electrum">Electrum (Aeon default)</option>
+				<option value="spanish">Spanish</option>
+				<option value="portuguese">Portuguese</option>
+				<option value="japanese">Japanese</option>
+			</select>
+			<span style="font-size:small;">Note: Only XMR is fully supported by this site. Use at your own risk, there is no warranty, etc.</span>
+		</div>
+	
+		<div id="addrGen">
+			<h2>Address Generator</h2>
+			<label for="mnemonic">&nbsp;1. Mnemonic Seed:&nbsp;&nbsp;&nbsp;&nbsp;</label>
+			<textarea id="mnemonic" cols="120" rows="2" placeholder="Enter your 13 or 24/25 word mnemonic seed here and press &quot;Generate&quot; OR press one of the Random buttons on the right" ></textarea>
+			<button onclick="addressGen();">Generate</button>
+			<span id="randomButtons">
+				<button onclick="allRandom();">Random</button>
+				<button onclick="allRandomMm();">Random MyMonero</button>
+			</span>
+			<br>
+			<br>
+			<label for="hexSeed">&nbsp;2. Hexadecimal Seed:</label>
+			<input type="text" id="hexSeed" placeholder="128-bit random (MM) OR Private Spend Key" size="66" disabled />
+			<br>
+			<br>
+			<label for="privSpend">&nbsp;3. Private Spend Key:</label>
+			<input type="text" id="privSpend" placeholder="Private Spend Key" size="66" disabled />
+			<label class="prView" for="privView">4. Private View Key:&nbsp;</label>
+			<input type="text" id="privView" placeholder="Private View Key" size="66" disabled />
+			<br>
+			<br>
+			<label for="pubSpend">&nbsp;5. Public Spend Key:&nbsp;</label>
+			<input type="text" id="pubSpend" placeholder="Public Spend Key" size="66" disabled />
+			<label  class="puView" for="pubView">6. Public View Key:&nbsp;&nbsp;</label>
+			<input type="text" id="pubView" placeholder="Public View Key" size="66" disabled />
+			<br>
+			<br>
+			<div class="centerDiv">
+				<div id="payIdWrap" style="display: none;">
+					<label id="payID" for="paymentID">Payment ID:&nbsp;</label>
+					<input type="text" id="paymentID" placeholder="Payment ID for &quot;Integrated Address&quot; only; 16 hex chars" size="66" disabled />
+					<br>
+					<br>
+				</div>
+				<label for="pubAddr">7. Public Address:&nbsp;</label>
+				<input type="text" id="pubAddr" placeholder="Public Address Base58" size="140" disabled />
+			</div>
+			<br>
+		</div>
+		<br>
+		<br>
+	
+		<div id="enc-wrapper">
+			<h2>Encrypt/Decrypt Mnemonic Seed</h2>
+			<label for="encKey">&nbsp;8. Encryption Key:&nbsp;</label>
+			<input type="text" id="encKey" placeholder="Encryption Key (text)" size="107" />
+			<button onclick="encryptMn(true);">Encrypt</button>
+			<button onclick="encryptMn(false);">Decrypt</button>
+			<button onclick="encryptMnOld(true);">Encrypt (Old)</button>
+			<button onclick="encryptMnOld(false);">Decrypt (Old)</button>
+			<br>
+			<br>
+			<label for="encMn">&nbsp;9. Encrypted Mnemonic Seed:&nbsp;</label>
+			<textarea id="encMn" cols="120" rows="2" placeholder="13 or 25 words" ></textarea>
+
+
+			<p>"Encrypt" requires a mnemonic seed in "1." and encrypts it with the key in "8.", placing the result in "9."
+			<br>
+			"Decrypt" requires an encrypted seed in "9." and key in "8.", and places the result in "1."
+			<br>
+			<br>
+			Technical details: in the "Old" method, the key was hashed with 10,000 rounds of keccak, then xor&#39;ed with the hex seed to encode as an encrypted mnemonic.
+			<br>
+			I have left the old capability in place in case anyone has already used it and needs to decrypt their seed; <strong>it should not be used going forward.</strong>
+			<br>
+			<br>
+			In the current method, the key is hashed with CryptoNight instead, then used as above. This is much slower in Javascript unfortunately, but has much better KDF characteristics.
+			<br>
+			The resulting encrypted mnemonic has no added characteristics and may be indistinguishable from an unencrypted mnemonic.
+			</p>
+			<br>
+		</div>
+		<br><br>
+		<div id="fake-multisig-wrapper">
+			<h2>Ice Cold Storage, One-Time-Use 2FA Account</h2>
+			<label for="encKey2">&nbsp;10. 2FA Key:&nbsp;</label>
+			<input type="text" id="encKey2" placeholder="User B 2FA Key (text)" size="66" />
+			<h3>&nbsp;Generating:</h3>
+			<label for="addrPt2">&nbsp;11. Public Address:&nbsp;</label>
+			<input type="text" id="addrPt2" placeholder="User A Public Address" size="107" />
+			<button onclick="deriveAddr();">Compute 2FA Address</button>
+			<br><br>
+
+			<label for="derivedAddr">&nbsp;12. 2FA Address:&nbsp;</label>
+			<input type="text" id="derivedAddr" placeholder="Combined 2FA Address" size="107" disabled />
+			<br><h3>&nbsp;Redeeming:</h3>
+			<label for="mnemonicPt2">&nbsp;13. Mnemonic:&nbsp</label>
+			<textarea id="mnemonicPt2" cols="120" rows="2" placeholder="User A mnemonic"></textarea>
+			<button onclick="derive2faKeys();">Derive Keys</button>
+			<br><br>
+			<label for="derivedSpendKey">&nbsp;14. Derived Spend Key:&nbsp;</label>
+			<input type="text" id="derivedSpendKey" placeholder="Derived key that allows spending" size="66" disabled />
+			<label for="derivedViewKey">&nbsp;15. View Key:&nbsp;</label>
+			<input type="text" id="derivedViewKey" placeholder="View Key" size="66" disabled />
+			<br>
+			<p>Combines two public spend keys into one, creating a combined public address. Originally imagined <a href="http://pastebin.com/JDYuw5w9">here</a>; this version is somewhat simplified.</p>
+			<p><strong>To generate:</strong> on computer A, generate a regular account. Copy *only* the public address over to computer B. On computer B, enter a 2FA key and click "Compute 2FA Address".<br>
+			The two-factor-authentication key can be any text, including another 25-word mnemonic. It is hashed with CryptoNight similar to encrypting the mnemonic in the above section,<br>
+			but is used to create new spend key pair instead. The public keys are combined to create the 2FA account.<br>
+			Users A & B should securely store their half of the information (mnemonic/key) until redemption is desired.</p>
+			<p><strong>To redeem:</strong> user A places their mnemonic in box 13, user B places their 2FA key in 11. After pressing "Derive Keys", the real Spend Key and View Key will be displayed and can be used
+			<br>along with the address from 12 to restore a non-deterministic wallet in simplewallet. This is a key difference compared to encrypting the seed.</p>
+			<p>A watch-only wallet can also be created with the view key and the 2FA address in simplewallet to watch for incoming payments.</p>
+			<br>
+			<p>A zipped archive of this page with dependencies is <a href="https://xmr.llcoins.net/addressgen.zip">here.</a> SHA256 Hash: b78794db3f87daa98e0a4c3ba58d3be1b363e8b03b6ffd278b782f3de364bac7</p>
+			<br>
+		</div>
+
+	</div>
+ </body>
+ 
+ </html>

@@ -1,0 +1,87 @@
+<!doctype html>
+<html>
+ <head>
+    <title>XMR Sign & Verify</title>
+	
+	<script src="js/jquery.min.js"></script>
+	<script src="js/crc32.js"></script>
+	<script src="js/mnemonic.js"></script>
+	<script src="js/biginteger.js"></script>
+	<script src="js/config.js"></script>
+	<script src="js/crypto.js"></script>
+	<script src="js/base58.js"></script>
+	<script src="js/cn_util.js"></script>
+	<script src="js/site.js"></script>
+	<script src="js/qrcode.js"></script>
+	<script src="js/sha3.js"></script>
+   
+	<style>
+	input {font-family: Lucida Console, monospace;}
+	textarea {vertical-align: top;}
+	h1 {width: 300px; margin: 0 0; background-color: #ddd;}
+	h1, h2 {text-align: center;}
+	body {background-color: #666;}
+	#main-wrapper {width: 1100px; margin: 0 auto;}
+	#sign-wrapper, #verify-wrapper {background-color: #ddd; padding-top: 1px;}
+	#signButton {float: right; margin-right: 50px; margin-top: 100px;}
+	.validYes {color: #000;}
+	.validNo {color: #d00;}
+	.boxes {}
+	#signMessage{margin-left: 20px;}
+	#verifyMessage{margin-left: 5px;}
+	#addr{margin-left: 11px;}
+	#private{margin-left: 33px;}
+	#verifyResult{font-family: monospace; margin-left: 70px;}
+	</style>
+ </head>
+ <body>
+	<div id="main-wrapper">
+	<h1>Sign/Verify Message</h1>
+	<div id="sign-wrapper">
+		<h2>Sign</h2>
+	
+
+		<label for="signMessage">&nbsp;1. Message Text:</label>
+		<textarea id="signMessage" placeholder="Your message to sign" rows="4" cols="120"></textarea>
+	
+	
+		<br>
+		<br>
+		<label for="private">&nbsp;2. Private Key:</label>
+		<input class="boxes" type="text" id="private" placeholder="64 hex chars" size="91" />
+		<select id="type">
+			<option>Private Spendkey</option>
+			<option>Private Viewkey</option>
+		</select>
+
+		<br>
+		<br>
+	
+		<label for="addr">&nbsp;3. Public Address:</label>
+		<input class="boxes" type="text" id="addr" placeholder="95 or 106 base58 chars" size="100" />
+		<button onclick="signMsg();">Sign</button>
+		<br>
+		<p style="font-size:80%; text-align:center; padding-bottom: 5px;">Note: this site operates completely on client-side Javascript; no data is ever sent to the web server.
+		<br>
+		</p>
+	</div>
+
+	<br>
+	<div id="verify-wrapper">
+		<h2>Verify</h2>
+		<label for="verifyMessage">&nbsp;1. Signed Message:</label>
+		<textarea id="verifyMessage" placeholder="Your message to verify" rows="8" cols="120"></textarea>
+		<button onclick="verifyMsg();">Verify</button>
+		<br>
+		<br>
+		<br>
+		<label for="verifyResult">&nbsp;2. Result:</label>
+		<span id="verifyResult"></span>
+		<br>
+		<br>
+	</div>
+	
+	</div>
+ </body>
+ 
+ </html>

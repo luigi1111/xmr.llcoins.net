@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+ <head>
+    <title>CN Hash</title>
+	
+	<script src="js/jquery.min.js"></script>
+	<!--<script src="js/crc32.js"></script>
+	<script src="js/mnemonic.js"></script>
+	<script src="js/biginteger.js"></script>
+	<script src="js/config.js"></script>
+	<script src="js/crypto.js"></script>
+	<script src="js/base58.js"></script>
+	<script src="js/qrcode.js"></script>
+	<script src="js/cn_util.js"></script>-->
+	<script src="js/site.js"></script>
+	<script src="js/slow-hash-worker.min.js"></script>
+   
+	<style> 
+	
+	input {font-family: Lucida Console, monospace;}
+
+	h1 {width: 300px; margin: 0 0; background-color: #ddd;}
+	h1, h2 {text-align: center;}
+	body {background-color: #666;}
+	#main-wrapper {width: 1200px; margin: 0 auto;}
+	#cnHash, #results-wrapper {background-color: #ddd; padding-top: 1px;}
+	#slowHashOut {margin-left: 27px;}
+	.boxes {}
+	#slowHashInp{margin-left: 34px;}
+	
+
+
+	</style>
+ </head>
+ <body>
+	<div id="main-wrapper">
+	<h1>Cryptonight</h1>
+	<div id="cnHash">
+	<h2>Compute the Cryptonight Hash of hexadecimal input data</h2>
+
+	<label for="slowHashInp">&nbsp;1. Input:</label>
+	<input class="boxes" type="text" id="slowHashInp" placeholder="Hex input to hash" size="66" />
+	
+	
+	<br>
+	<br>
+	<label id="privateLabel" for="slowHashOut">&nbsp;2. Result:</label>
+	<input class="boxes" type="text" id="slowHashOut" placeholder="CN Hash" size="66" disabled />
+
+
+	<button onclick="cryptonightWorker();">Compute</button>
+	<br>
+	
+	<br>
+	
+	</div>
+	
+ </body>
+ 
+ </html>

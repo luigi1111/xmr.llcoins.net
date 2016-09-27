@@ -1,0 +1,248 @@
+<!doctype html>
+<html>
+ <head>
+    <title>Cryptonote Address Tests</title>
+	<meta charset="utf-8">
+	<script src="js/jquery.min.js"></script>
+	<script src="js/crc32.js"></script>
+	<script src="js/mnemonic.js"></script>
+	<script src="js/biginteger.js"></script>
+	<script src="js/config.js"></script>
+	<!--<script src="js/slow-hash-worker.min.js"></script>-->
+	<script src="js/crypto.js"></script>
+	<script src="js/base58.js"></script>
+	<script src="js/qrcode.js"></script>
+	<script src="js/sha3.js"></script>
+	<script src="js/cn_util.js?2"></script>
+	<script src="js/site.js"></script>
+
+	<!--<script src="js/vanity_address.js"></script>-->
+   
+	<style>
+	input {font-family: Lucida Console, monospace;}
+	.centerDiv {width: 1250px; margin: 0 auto;}
+	textarea {vertical-align: top;}
+	.prView {margin-left: 20px;}
+	.puView {margin-left: 17px;}
+	h1 {width: 380px; margin: 0 0; background-color: #ddd;}
+	h1, h2 {text-align: center;}
+	body {background-color: #666;}
+	#main-wrapper {width: 1650px; margin: 0 auto;}
+	#addrGen {background-color: #ddd; padding-top: 1px;}
+	#addrGen > h2 {margin-top: 0px;}
+	#addrCheck {background-color: #ddd; padding-top: 1px; width: 1300px;}
+	#explanation {background-color: #ddd; padding-top: 1px;}
+	#randomButtons {float: right; margin-right: 10px;}
+	#payID {margin-left: 200px;}
+	#pubAddr2 {margin-left: 35px;}
+	#pubAddrHex {margin-left: 4px;}
+	#pubSpend2 {margin-left: 67px;}
+	#pubView2 {margin-left: 3px;}
+	#extraInput {margin-left: 164px;}
+	#pubAddrForHash {margin-left: 40px;}
+	#pubAddrHash {margin-left: 54px;}
+	#pubAddrChksum2 {margin-left: 57px; margin-right: 10px;}
+	#validYes {color: #0a0;}
+	#validNo {color: #f00;}
+	#qr-wrapper {float: right; width: 320px; height: 410.813px; background-color: #ddd;}
+	#qr {width: 150px; height: 150px; margin: 50px auto auto auto;}
+	div#qr > img {display: block; margin: 0 auto;}
+	#coinSelect {padding: 20px 0px 0px 20px; background-color: #ddd;}
+	#expText {margin: 0px 30px 0px 30px;/* font-family: cursive;}
+	#explanation > h2 {font-family: cursive;*/}
+	#xmrAddr {margin-left: 27px;}
+	</style>
+
+ </head>
+ <body>
+	<div id="main-wrapper">
+		<h1>Cryptonote Address Tests</h1>
+		<div id="coinSelect">
+			<select id="coinType" onchange="coinType(this.value);">
+				<option value="12">Standard XMR</option>
+				<option value="01">BBR</option>
+				<option value="48">(the real) DaSH</option>
+				<option value="b201">AEON</option>
+				<option value="35">XMR Testnet</option>
+				<option value="13">XMR Integrated</option>
+				<option value="11">XMR Truncated</option>
+			</select>
+			<label for="pubAddrNetByte">&nbsp;Network Byte:&nbsp;</label>
+			<input type="text" id="pubAddrNetByte" value="12" size="4" disabled />
+			&nbsp;&nbsp;
+			<label for="mnDict">Mnemonic Dictionary</label>
+			<select id="mnDict">
+				<option value="english">English (Monero default)</option>
+				<option value="electrum">Electrum (Aeon default)</option>
+				<option value="spanish">Spanish</option>
+				<option value="portuguese">Portuguese</option>
+				<option value="japanese">Japanese</option>
+			</select>
+			<span style="font-size:small;">Note: Only XMR is fully supported by this site.</span>
+		</div>
+		<div id="addrGen">
+			<h2>Address Generation</h2>
+			<label for="mnemonic">&nbsp;1. Mnemonic Seed:&nbsp;&nbsp;&nbsp;&nbsp;</label>
+			<textarea id="mnemonic" cols="120" rows="2" placeholder="13 or 24/25 word mnemonic seed"></textarea>
+			<button onclick="mnemonicSubmit();">Gen 2.</button>
+			<button onclick="mnemonicRandom();">Random</button>
+			<span id="randomButtons">
+				<button onclick="allRandom();">Random</button>
+				<button onclick="allRandomMm();">Random MyMonero</button>
+			</span>
+			<br>
+			<br>
+			<label for="hexSeed">&nbsp;2. Hexadecimal Seed:</label>
+			<input type="text" id="hexSeed" placeholder="128-bit random (MyMonero) OR 256-bit scalar (Deterministic)" size="66" />
+			<button onclick="hexSeedSubmit();">Gen 3. & 4.</button>
+			<button onclick="hexSeedRandom();">Random</button>
+			<button onclick="hexSeedToMn();">Gen 1.</button>
+			<br>
+			<br>
+			<label for="privSpend">&nbsp;3. Private Spend Key:</label>
+			<input type="text" id="privSpend" placeholder="Private Spend Key" size="66" />
+			<button onclick="spendSubmit();">Gen 5.</button>
+			<button onclick="spendRandom();">Random</button>
+			<label class="prView" for="privView">4. Private View Key:&nbsp;</label>
+			<input type="text" id="privView" placeholder="Private View Key" size="66" />
+			<button onclick="viewSubmit();">Gen 6.</button>
+			<button onclick="viewRandom();">Random.</button>
+			<br>
+			<br>
+			<label for="pubSpend">&nbsp;5. Public Spend Key:&nbsp;</label>
+			<input type="text" id="pubSpend" placeholder="Public Spend Key" size="66" />
+			<button onclick="pubToView();">Gen 4. (Audit Addr)</button>
+			<label  class="puView" for="pubView">6. Public View Key:&nbsp;&nbsp;</label>
+			<input type="text" id="pubView" placeholder="Public View Key" size="66" />
+			<br>
+			<br>
+			<div class="centerDiv">
+				<label id="payID" for="paymentID">Payment ID:&nbsp;</label>
+				<input type="text" id="paymentID" placeholder="Payment ID for &quot;Integrated Address&quot; only; 16 hex chars" size="66" />
+				<button onclick="randID();">Random</button>
+				<button onclick="addrSubmit();">Gen 7.</button>
+				<br>
+				<br>
+				<label for="pubAddr">7. Public Address:&nbsp;</label>
+				<input type="text" id="pubAddr" placeholder="Public Address Base58" size="110" />
+				<button onclick="toAddrTest();">Send to 8.</button>
+				<button onclick="genQR();">Generate QR Code</button>
+			</div>
+			<br>
+		</div>
+		<br>
+		<br>
+		<span id="qr-wrapper">
+			<br>
+			<h2>QR Code</h2>
+			<div id="qr"></div>
+		</span>	
+		<div id="addrCheck">
+			
+			<h2>Check Address</h2>
+			<label for="pubAddr2">&nbsp;8. Public Address:&nbsp;</label>
+			<input type="text" id="pubAddr2" placeholder="Public Address Base58" size="110" />
+			<button onclick="addrCheck();">Check Address</button>
+			<button onclick="clearAddr();">Clear Fields</button>
+			<br>
+			<br>
+			<label for="pubAddrHex">&nbsp;9. Public Address Hex:&nbsp;</label>
+			<input type="text" id="pubAddrHex" placeholder="2 (network) + 64 (spendkey) + 64 (viewkey) + 8 (checksum) Base16 digits" size="140" disabled />
+			<br>
+			<br>
+			<label for="pubSpend2">&nbsp;10. Decoded:&nbsp;</label>
+			<input type="text" id="pubSpend2" placeholder="Public Spend Key" size="66" disabled />
+			<input type="text" id="pubView2" placeholder="Public View Key" size="66" disabled />
+			<br>
+			<br>
+			<input type="text" id="extraInput" placeholder="Payment ID (Integrated Address Only) OR Private View Key (Truncated Address Only)" size="90" disabled />
+			<br>
+			<br>
+			<label for="pubAddrChksum">&nbsp;11. Address Checksum:&nbsp;</label>
+			<input type="text" id="pubAddrChksum" placeholder="Last 4 bytes of 9" size="18" disabled />
+			<br>
+			<br>
+			<label for="pubAddrForHash">&nbsp;12. Netbyte + 10:&nbsp;</label>
+			<input type="text" id="pubAddrForHash" placeholder="2 + 64 [+ 64 [+ 16]] Base16 digits" size="140" disabled />
+			<br>
+			<br>
+			<label for="pubAddrHash">&nbsp;13. Hash of 12:&nbsp;</label>
+			<input type="text" id="pubAddrHash" placeholder="256-bit keccak hash" size="66" disabled />
+			<br>
+			<br>
+			<label for="pubAddrChksum2">&nbsp;14. Checksum:&nbsp;</label>
+			<input type="text" id="pubAddrChksum2" placeholder="First 4 bytes of 13" size="20" disabled />
+			<span>Does #14 equal #11?&nbsp; <span id="validYes"></span><span id="validNo"></span></span>
+			<br>
+			<br>
+			<label for="xmrAddr">&nbsp;15. Standard XMR:&nbsp;</label>
+			<input type="text" id="xmrAddr" placeholder="Address represented in standard XMR format" size="110" disabled />
+
+			<br>
+			<br>
+		</div>
+	
+		<br>
+		<br>
+		
+		<div id="explanation">
+			<h2>How Cryptonote Addresses Are Created</h2>
+			<div id="expText">
+				<em>Cryptonote Public Addresses</em> differ in several ways compared to Bitcoin. First, Cryptonote uses two keypairs, known as the <em>spend keypair</em> and the <em>view keypair</em>. Furthermore, these keys are 
+				<a href="http://en.wikipedia.org/wiki/EdDSA">EdDSA</a> (specifically ed25519) keys, whereas Bitcoin uses <a href="http://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm">ECDSA</a> (specifically 
+				secp256k1) keys. Finally, <em>Cryptonote Public Addresses</em> are direct representations of the pair of public keys, whereas Bitcoin (and clones) uses a hash of the single public key. EdDSA keys (both private and 
+				public) are 256 bits long, or 64 hexadecimal characters. Not every 256-bit integer is a valid EdDSA scalar (private key); it must be less than the &quot;curve order&quot;. The function to do this is labeled 
+				<em>sc_reduce32</em>.
+				<br>
+				<br>
+				To add to the confusion, there are presently at least three different methods of <em>private key</em> derivation in existence for Monero (and other Cryptonotes), though Bitcoin also has many:
+				<ol type="1">
+					<li><strong>Original (non-deterministic) Style</strong> &ndash; The <em>Private Spend Key</em> and <em>Private View Key</em> are both independently and randomly chosen to form an account. You can simulate this 
+					above by pressing the &quot;Random&quot; buttons next to fields 3. and 4., then pressing &quot;Gen&nbsp;5.&quot;, &quot;Gen&nbsp;6.&quot;, and &quot;Gen&nbsp;7.&quot;, in that order. There is no good way to back 
+					up a non-deterministic account other than keeping copies of the files; you need to have a copy of both private keys, but presently only <a href="https://mymonero.com">MyMonero</a> will accept the two keys as 
+					input instead of a seed/wallet file. For these reasons, it is not recommended to use an account of this type.</li>
+
+					<li><strong>Mnemonic (Electrum or Deterministic) Style</strong> &ndash; In this style, the <em>Private View Key</em> is derived from the <em>Private Spend Key</em>, so you only need to remember one thing: the 
+					seed, which is actually just a representation of the <em>Private Spend Key</em> itself. This 256-bit scalar can be easily converted to a &quot;24-digit&quot; Base1626 &quot;number&quot; in the form of a mnemonic 
+					seed, which is 25 words long with the last word being used as a checksum. Mnemonics convert on a ratio of 4:3 minimum: four bytes creates three words, plus one checksum word; eight bytes creates six words, plus 
+					one checksum word; and so on. The &quot;seeds&quot; created by this method will always be valid scalars as they are sent to <em>sc_reduce32</em> first. The <em>Private View Key</em> is derived by hashing the 
+					<em>Private Spend Key</em> with <a href="https://en.wikipedia.org/w/index.php?title=SHA-3&oldid=676252215#Examples_of_SHA-3_and_Keccak_variants">Keccak-256</a>, producing a second 256-bit integer, which is then 
+					sent to <em>sc_reduce32</em>. You can test out this style above by pressing the &quot;Random&quot; button on the upper right, or by pressing either of the &quot;Random&quot; buttons next to fields 1. and 2., 
+					then the various &quot;Gen x.&quot; buttons. You can backup accounts of this type by writing down or otherwise saving the 25 word deterministic seed; you can easily restore using both Simplewallet and MyMonero.
+					</li>
+
+					<li><strong>MyMonero Style</strong> &ndash; This is similar to 2., but uses a 13 word seed instead of a 25 word seed. The 13 words convert to a 128-bit integer that is used for both spend and view key 
+					derivation, in the following form: the 128-bit integer is hashed with Keccak-256 to produce a 256-bit integer, <var>a</var>. <var>a</var> is sent to <em>sc_reduce32</em>, which returns the <em>Private Spend 
+					Key</em>. <var>a</var> is hashed once more with Keccak-256 to produce a second 256-bit integer, <var>b</var>. <var>b</var> is then sent to <em>sc_reduce32</em>, which returns the <em>Private View Key</em>. You 
+					may have noticed a critical difference between this style and the Electrum Style: MyMonero&#39;s <em>Private View Key</em> derivation is done by hashing random integer <var>a</var>, while Electrum Style 
+					derivation is done by hashing the <em>Private Spend Key</em>. This means that 13 and 25 word seeds are not compatible &ndash; it is not possible to create an Electrum Style seed (and account) that matches a 
+					MyMonero Style seed (and account) or vice versa; the <em>view keypair</em> will always be different. You can test out this style above with the &quot;Random MyMonero&quot; button. To backup MyMonero accounts, 
+					save the 13 word seed; you can currently &quot;restore&quot; using MyMonero only (you&#39;re really just logging in) &ndash; Simplewallet does not currently support 13-word seeds.</li>
+				</ol>
+	
+				Above we discussed the different ways <em>private keys</em> are derived; the rest of the address generation process is the same in all three cases. The <em>Private Spend Key</em> and <em>Private View Key</em> are sent 
+				to the ed25519 scalarmult function to create their counterparts, the <em>Public Spend Key</em> and <em>Public View Key</em>. To create the actual <em>Public Address</em>, the following is performed:
+
+				<ol type="1">
+					<li>The pair of public keys are prepended with one network byte (the number 18, 0x12, for Monero). It looks like this: (network byte) + (32-byte public spend key) + (32-byte public view key).</li>
+					<li>These 65 bytes are hashed with Keccak-256.</li>
+					<li>The first four bytes of the hash from 2. are appended to 1., creating a 69-byte <em>Public Address</em>.</li>
+					<li>As a last step, this 69-byte string is converted to Base58. However, it&#39;s not done all at once like a Bitcoin address, but rather in 8-byte blocks. This gives us eight full-sized blocks and one 5-byte 
+					block. Eight bytes converts to 11 or less Base58 characters; if a particular block converts to <11 characters, the conversion pads it with &quot;1&quot;s (1 is 0 in Base58). Likewise, the final 5-byte 
+					block can convert to 7 or less Base58 digits; the conversion will ensure the result is 7 digits. Due to the conditional padding, the 69-byte string will always convert to 95 Base58 characters 
+					(8 * 11 + 7).</li>
+					<li>This 95-character result is the (obscenely long) <em>Cryptonote Public Address!</em></li>
+					<li>If you&#39;re creating an integrated address, simply append the 64-bit payment ID to step 1 and continue; everything else is the same except for the lengths (77 bytes total, 106 Base58 digits) and the 
+					prepended byte (19, 0x13).</li>
+				</ol>
+				<br>
+				<center>On an *unrelated* note, check out <a href="http://openalias.org/">OpenAlias</a>! My address is <a href="http://luigi1111.llcoins.net">luigi1111.llcoins.net</a>. If you want to donate Monero, send it here: 
+				<a href="http://donate.getmonero.org">donate.getmonero.org</a></center>.
+				<br>
+				<br>
+			</div>
+		</div>
+	</div>
+ </body>
+ 
+</html>
