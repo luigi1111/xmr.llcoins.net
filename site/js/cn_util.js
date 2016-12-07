@@ -940,7 +940,7 @@ var cnUtil = (function(initConfig) {
         return (sig.c === c);
     };*/
 
-    this.check_signature2 = function(prefix_hash, pub, signature) {
+    this.check_signature = function(prefix_hash, pub, signature) {
         if (signature.length !== STRUCT_SIZES.SIGNATURE * 2) {
             return false;
         }
