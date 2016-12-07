@@ -347,8 +347,7 @@ function deriveAddr(){
         if (cnBase58.decode(addrPt2Tag.value).slice(0, pubAddrNetByte.value.length) !== pubAddrNetByte.value){
             throw "Make sure you have selected the right network byte for your intended address type!";
         }
-    }
-    catch(err){
+    } catch (err){
         derivedAddrTag.value = err;
         return;
     }
@@ -361,7 +360,11 @@ function deriveAddr(){
         console.log("cn_slow_hash time: " + t);
         var pub2 = sec_key_to_pub(scalar);
         var derivedPub = ge_add(keys.spend, pub2);
-        derivedAddrTag.value = toPublicAddr(pubAddrNetByte.value, derivedPub, keys.view);
+        try{
+            derivedAddrTag.value = toPublicAddr(pubAddrNetByte.value, derivedPub, keys.view, (keys.intPaymentId === undefined) ? "": keys.intPaymentId);
+        } catch (err){
+            derivedAddrTag.value = err;
+        }
     }, 50, keys, pass);
 }
 
@@ -374,8 +377,7 @@ function derive2faKeys(){
     }
     try{
         var scalar1 = sc_reduce32(mn_decode(mnemonicPt2Tag.value)); //ensure seed is reduced
-    }
-    catch(err){
+    } catch (err){
         derivedSpendKeyTag.value = err;
         return;
     }
@@ -388,7 +390,11 @@ function derive2faKeys(){
         console.log("cn_slow_hash time: " + t);
         var spendKey = sc_add(scalar1, scalar2);
         var viewKey = sc_reduce32(cn_fast_hash(scalar1));
-        derivedAddrTag.value = toPublicAddr(pubAddrNetByte.value, sec_key_to_pub(spendKey), sec_key_to_pub(viewKey)); //be careful with the selected netbyte here (at top left of page)!
+        try{
+            derivedAddrTag.value = toPublicAddr(pubAddrNetByte.value, sec_key_to_pub(spendKey), sec_key_to_pub(viewKey), paymentID.value); //be careful with the selected netbyte here (at top left of page)!
+        } catch (err){
+            derivedAddrTag.value = err;
+        }
         derivedSpendKeyTag.value = spendKey;
         derivedViewKeyTag.value = viewKey;
     }, 50, scalar1, pass);
@@ -473,6 +479,7 @@ function addrSubmit(){
 function toPublicAddr(netbyte, pubsk, pubvk, pid){
     if (pubvk === undefined){pubk = "";}
     if (pid === undefined){pid = "";}
+    if ((netbyte !== "13" && pid !== "") || (netbyte === "13" && pid === "")){throw "pid or no pid with wrong address type";}
     if (netbyte === "11"){pubvk = "";}
     var preAddr = netbyte + pubsk + pubvk + pid;
     var hash = cn_fast_hash(preAddr);
