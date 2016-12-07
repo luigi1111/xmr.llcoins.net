@@ -55,7 +55,7 @@
 				<option value="11">XMR Truncated</option>
 			</select>
 			<label for="pubAddrNetByte">&nbsp;Network Byte:&nbsp;</label>
-			<input type="text" id="pubAddrNetByte" value="12" size="4" disabled />
+			<input type="text" id="pubAddrNetByte" value="12" size="4" readonly="readonly" />
 			&nbsp;&nbsp;
 			<label for="mnDict">Mnemonic Dictionary</label>
 			<select id="mnDict">
@@ -80,30 +80,30 @@
 			<br>
 			<br>
 			<label for="hexSeed">&nbsp;2. Hexadecimal Seed:</label>
-			<input type="text" id="hexSeed" placeholder="128-bit random (MM) OR Private Spend Key" size="66" disabled />
+			<input type="text" id="hexSeed" placeholder="128-bit random (MM) OR Private Spend Key" size="66" readonly="readonly" />
 			<br>
 			<br>
 			<label for="privSpend">&nbsp;3. Private Spend Key:</label>
-			<input type="text" id="privSpend" placeholder="Private Spend Key" size="66" disabled />
+			<input type="text" id="privSpend" placeholder="Private Spend Key" size="66" readonly="readonly" />
 			<label class="prView" for="privView">4. Private View Key:&nbsp;</label>
-			<input type="text" id="privView" placeholder="Private View Key" size="66" disabled />
+			<input type="text" id="privView" placeholder="Private View Key" size="66" readonly="readonly" />
 			<br>
 			<br>
 			<label for="pubSpend">&nbsp;5. Public Spend Key:&nbsp;</label>
-			<input type="text" id="pubSpend" placeholder="Public Spend Key" size="66" disabled />
+			<input type="text" id="pubSpend" placeholder="Public Spend Key" size="66" readonly="readonly" />
 			<label  class="puView" for="pubView">6. Public View Key:&nbsp;&nbsp;</label>
-			<input type="text" id="pubView" placeholder="Public View Key" size="66" disabled />
+			<input type="text" id="pubView" placeholder="Public View Key" size="66" readonly="readonly" />
 			<br>
 			<br>
 			<div class="centerDiv">
 				<div id="payIdWrap" style="display: none;">
 					<label id="payID" for="paymentID">Payment ID:&nbsp;</label>
-					<input type="text" id="paymentID" placeholder="Payment ID for &quot;Integrated Address&quot; only; 16 hex chars" size="66" disabled />
+					<input type="text" id="paymentID" placeholder="Payment ID for &quot;Integrated Address&quot; only; 16 hex chars" size="66" readonly="readonly" />
 					<br>
 					<br>
 				</div>
 				<label for="pubAddr">7. Public Address:&nbsp;</label>
-				<input type="text" id="pubAddr" placeholder="Public Address Base58" size="140" disabled />
+				<input type="text" id="pubAddr" placeholder="Public Address Base58" size="140" readonly="readonly" />
 			</div>
 			<br>
 		</div>
@@ -152,19 +152,19 @@
 			<br><br>
 
 			<label for="derivedAddr">&nbsp;12. 2FA Address:&nbsp;</label>
-			<input type="text" id="derivedAddr" placeholder="Combined 2FA Address" size="107" disabled />
+			<input type="text" id="derivedAddr" placeholder="Combined 2FA Address" size="107" readonly="readonly" />
 			<br><h3>&nbsp;Redeeming:</h3>
-			<label for="mnemonicPt2">&nbsp;13. Mnemonic:&nbsp</label>
+			<label for="mnemonicPt2">&nbsp;13. Mnemonic:&nbsp;</label>
 			<textarea id="mnemonicPt2" cols="120" rows="2" placeholder="User A mnemonic"></textarea>
 			<button onclick="derive2faKeys();">Derive Keys</button>
 			<br><br>
 			<label for="derivedSpendKey">&nbsp;14. Derived Spend Key:&nbsp;</label>
-			<input type="text" id="derivedSpendKey" placeholder="Derived key that allows spending" size="66" disabled />
+			<input type="text" id="derivedSpendKey" placeholder="Derived key that allows spending" size="66" readonly="readonly" />
 			<label for="derivedViewKey">&nbsp;15. View Key:&nbsp;</label>
-			<input type="text" id="derivedViewKey" placeholder="View Key" size="66" disabled />
+			<input type="text" id="derivedViewKey" placeholder="View Key" size="66" readonly="readonly" />
 			<br>
 			<p>Combines two public spend keys into one, creating a combined public address. Originally imagined <a href="http://pastebin.com/JDYuw5w9">here</a>; this version is somewhat simplified.</p>
-			<p><strong>To generate:</strong> on computer A, generate a regular account. Copy *only* the public address over to computer B. On computer B, enter a 2FA key and click "Compute 2FA Address".<br>
+			<p><strong>To generate:</strong> on computer A, generate a regular account. Copy *only* the public address over to computer B to box 11. Enter a 2FA key in box 10 and click "Compute 2FA Address".<br>
 			The two-factor-authentication key can be any text, including another 25-word mnemonic. It is hashed with CryptoNight similar to encrypting the mnemonic in the above section,<br>
 			but is used to create new spend key pair instead. The public keys are combined to create the 2FA account.<br>
 			Users A & B should securely store their half of the information (mnemonic/key) until redemption is desired.</p>
@@ -172,7 +172,7 @@
 			<br>along with the address from 12 to restore a non-deterministic wallet in simplewallet. This is a key difference compared to encrypting the seed.</p>
 			<p>A watch-only wallet can also be created with the view key and the 2FA address in simplewallet to watch for incoming payments.</p>
 			<br>
-			<p>A zipped archive of this page with dependencies is <a href="https://xmr.llcoins.net/addressgen.zip">here.</a> SHA256 Hash: b78794db3f87daa98e0a4c3ba58d3be1b363e8b03b6ffd278b782f3de364bac7</p>
+			<p>A zipped archive of this page with dependencies is <a href="https://xmr.llcoins.net/addressgen.zip">here</a> or on <a href="https://github.com/luigi1111/xmr.llcoins.net/raw/master/site/addressgen.zip">Github</a>. SHA256 Hash: <hash placeholder>. Also in the repo is a GPG signature with verification instructions.</p>
 			<br>
 		</div>
 
