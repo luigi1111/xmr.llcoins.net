@@ -325,7 +325,7 @@ function encryptMn(encrypt){
     setTimeout(function (encrypt, mn, pass){
         var d = new Date().getTime(); 
         var key = bintohex(SlowHash.string(pass));
-        var t = d - new Date().getTime();
+        var t = new Date().getTime() - d;
         console.log("cn_slow_hash time: " + t);
         var mnResult = mn_encode(hex_xor(mn, key.slice(0, mn.length)));
         if (encrypt){
@@ -336,6 +336,7 @@ function encryptMn(encrypt){
     }, 50, encrypt, mn, pass);
 }
 
+//new address = B+C, A, where C is a derived pubkey from the 2fa key
 function deriveAddr(){
     derivedAddrTag.value = "";
     if (addrPt2Tag.value === ""){
@@ -343,6 +344,9 @@ function deriveAddr(){
     }
     try{
         var keys = decode_address(addrPt2Tag.value);
+        if (cnBase58.decode(addrPt2Tag.value).slice(0, pubAddrNetByte.value.length) !== pubAddrNetByte.value){
+            throw "Make sure you have selected the right network byte for your intended address type!";
+        }
     }
     catch(err){
         derivedAddrTag.value = err;
@@ -353,14 +357,15 @@ function deriveAddr(){
     setTimeout(function (keys, pass){
         var d = new Date().getTime(); 
         var scalar = sc_reduce32(bintohex(SlowHash.string(pass)));
-        var t = d - new Date().getTime();
+        var t = new Date().getTime() - d;
         console.log("cn_slow_hash time: " + t);
         var pub2 = sec_key_to_pub(scalar);
         var derivedPub = ge_add(keys.spend, pub2);
-        derivedAddrTag.value = pubkeys_to_string(derivedPub, keys.view);
+        derivedAddrTag.value = toPublicAddr(pubAddrNetByte.value, derivedPub, keys.view);
     }, 50, keys, pass);
 }
 
+//new private keys = b+c, a, where c is a derived scalar from the 2fa key
 function derive2faKeys(){
     derivedSpendKeyTag.value = "";
     derivedViewKeyTag.value = "";
@@ -379,11 +384,11 @@ function derive2faKeys(){
     setTimeout(function (scalar1, pass){
         var d = new Date().getTime(); 
         var scalar2 = sc_reduce32(bintohex(SlowHash.string(pass)));
-        var t = d - new Date().getTime();
+        var t = new Date().getTime() - d;
         console.log("cn_slow_hash time: " + t);
         var spendKey = sc_add(scalar1, scalar2);
         var viewKey = sc_reduce32(cn_fast_hash(scalar1));
-        derivedAddrTag.value = pubkeys_to_string(sec_key_to_pub(spendKey), sec_key_to_pub(viewKey));
+        derivedAddrTag.value = toPublicAddr(pubAddrNetByte.value, sec_key_to_pub(spendKey), sec_key_to_pub(viewKey)); //be careful with the selected netbyte here (at top left of page)!
         derivedSpendKeyTag.value = spendKey;
         derivedViewKeyTag.value = viewKey;
     }, 50, scalar1, pass);
@@ -856,7 +861,7 @@ function cryptonightWorker(){
     setTimeout(function (data){
         var d = new Date().getTime();
         var result = bintohex(SlowHash.hex(data));
-        var t = d - new Date().getTime();
+        var t = new Date().getTime() - d;
         console.log("cn_slow_hash time: " + t);
         document.getElementById('slowHashOut').value = result;
     }, 50, data);
