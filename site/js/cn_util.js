@@ -27,7 +27,7 @@
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // Original Author: Lucas Jones
-// Modified by luigi1111 April 2016
+// Modified by luigi1111 2016
 
 var cnUtil = (function(initConfig) {
     var config = $.extend({}, initConfig);
@@ -178,6 +178,39 @@ var cnUtil = (function(initConfig) {
         Module._free(input_mem);
         Module._free(out_mem);
         return bintohex(output);
+    };
+
+    //"alias" for naming compatibility -- we really can have our cake and eat it too
+    this.ge_scalarmult_base = function(sec) {
+        return this.sec_key_to_pub(sec);
+    };
+
+    //accepts arbitrary point, rather than G
+    this.ge_scalarmult = function(pub, sec) {
+        if (pub.length !== 64 || sec.length !== 64) {
+            throw "Invalid input length";
+        }
+        var pub_b = hextobin(pub);
+        var sec_b = hextobin(sec);
+        var pub_m = Module._malloc(KEY_SIZE);
+        Module.HEAPU8.set(pub_b, pub_m);
+        var sec_m = Module._malloc(KEY_SIZE);
+        Module.HEAPU8.set(sec_b, sec_m);
+        var ge_p3_m = Module._malloc(STRUCT_SIZES.GE_P3);
+        var ge_p2_m = Module._malloc(STRUCT_SIZES.GE_P2);
+        if (Module.ccall("ge_frombytes_vartime", "bool", ["number", "number"], [ge_p3_m, pub_m]) !== 0) {
+            throw "ge_frombytes_vartime returned non-zero error code";
+        }
+        Module.ccall("ge_scalarmult", "void", ["number", "number", "number"], [ge_p2_m, sec_m, ge_p3_m]);
+        var derivation_m = Module._malloc(KEY_SIZE);
+        Module.ccall("ge_tobytes", "void", ["number", "number"], [derivation_m, ge_p2_m]);
+        var res = Module.HEAPU8.subarray(derivation_m, derivation_m + KEY_SIZE);
+        Module._free(pub_m);
+        Module._free(sec_m);
+        Module._free(ge_p3_m);
+        Module._free(ge_p2_m);
+        Module._free(derivation_m);
+        return bintohex(res);
     };
 
     this.pubkeys_to_string = function(spend, view) {
@@ -335,36 +368,9 @@ var cnUtil = (function(initConfig) {
         return bintohex(res);
     };
 
-    //like above but without mul8 stuff...not used for anything but testing
+    //"alias" for backwards compatibility
     this.generate_key_derivation_2 = function(pub, sec) {
-        if (pub.length !== 64 || sec.length !== 64) {
-            throw "Invalid input length";
-        }
-        var pub_b = hextobin(pub);
-        var sec_b = hextobin(sec);
-        var pub_m = Module._malloc(KEY_SIZE);
-        Module.HEAPU8.set(pub_b, pub_m);
-        var sec_m = Module._malloc(KEY_SIZE);
-        Module.HEAPU8.set(sec_b, sec_m);
-        var ge_p3_m = Module._malloc(STRUCT_SIZES.GE_P3);
-        var ge_p2_m = Module._malloc(STRUCT_SIZES.GE_P2);
-        //var ge_p1p1_m = Module._malloc(STRUCT_SIZES.GE_P1P1);
-        if (Module.ccall("ge_frombytes_vartime", "bool", ["number", "number"], [ge_p3_m, pub_m]) !== 0) {
-            throw "ge_frombytes_vartime returned non-zero error code";
-        }
-        Module.ccall("ge_scalarmult", "void", ["number", "number", "number"], [ge_p2_m, sec_m, ge_p3_m]);
-        //Module.ccall("ge_mul8", "void", ["number", "number"], [ge_p1p1_m, ge_p2_m]);
-        //Module.ccall("ge_p1p1_to_p2", "void", ["number", "number"], [ge_p2_m, ge_p1p1_m]);
-        var derivation_m = Module._malloc(KEY_SIZE);
-        Module.ccall("ge_tobytes", "void", ["number", "number"], [derivation_m, ge_p2_m]);
-        var res = Module.HEAPU8.subarray(derivation_m, derivation_m + KEY_SIZE);
-        Module._free(pub_m);
-        Module._free(sec_m);
-        Module._free(ge_p3_m);
-        Module._free(ge_p2_m);
-        //Module._free(ge_p1p1_m);
-        Module._free(derivation_m);
-        return bintohex(res);
+        return this.ge_scalarmult(pub, sec);
     };
 
     this.derivation_to_scalar = function(derivation, output_index) {
@@ -460,6 +466,56 @@ var cnUtil = (function(initConfig) {
         return bintohex(res);
     };
 
+    //returns a 32 byte point via "ge_p3_tobytes" rather than a 160 byte "p3", otherwise same as above;
+    hash_to_ec_2 = function(key) {
+        if (key.length !== (KEY_SIZE * 2)) {
+            throw "Invalid input length";
+        }
+        var h_m = Module._malloc(HASH_SIZE);
+        var point_m = Module._malloc(STRUCT_SIZES.GE_P2);
+        var point2_m = Module._malloc(STRUCT_SIZES.GE_P1P1);
+        var res_m = Module._malloc(STRUCT_SIZES.GE_P3);
+        var hash = hextobin(this.cn_fast_hash(key, KEY_SIZE));
+        var res2_m = Module._malloc(KEY_SIZE);
+        Module.HEAPU8.set(hash, h_m);
+        Module.ccall("ge_fromfe_frombytes_vartime", "void", ["number", "number"], [point_m, h_m]);
+        Module.ccall("ge_mul8", "void", ["number", "number"], [point2_m, point_m]);
+        Module.ccall("ge_p1p1_to_p3", "void", ["number", "number"], [res_m, point2_m]);
+        Module.ccall("ge_p3_tobytes", "void", ["number", "number"], [res2_m, res_m]);
+        var res = Module.HEAPU8.subarray(res2_m, res2_m + KEY_SIZE);
+        Module._free(h_m);
+        Module._free(point_m);
+        Module._free(point2_m);
+        Module._free(res_m);
+        Module._free(res2_m);
+        return bintohex(res);
+    };
+
+    //does not ensure point is in group of G, also returns 32 bytes
+    hash_to_ec_3 = function(key) {
+        if (key.length !== (KEY_SIZE * 2)) {
+            throw "Invalid input length";
+        }
+        var h_m = Module._malloc(HASH_SIZE);
+        var point_m = Module._malloc(STRUCT_SIZES.GE_P2);
+        //var point2_m = Module._malloc(STRUCT_SIZES.GE_P1P1);
+        //var res_m = Module._malloc(STRUCT_SIZES.GE_P3);
+        var hash = hextobin(this.cn_fast_hash(key, KEY_SIZE));
+        var res2_m = Module._malloc(KEY_SIZE);
+        Module.HEAPU8.set(hash, h_m);
+        Module.ccall("ge_fromfe_frombytes_vartime", "void", ["number", "number"], [point_m, h_m]);
+        //Module.ccall("ge_mul8", "void", ["number", "number"], [point2_m, point_m]);
+        //Module.ccall("ge_p1p1_to_p3", "void", ["number", "number"], [res_m, point_m]);
+        Module.ccall("ge_tobytes", "void", ["number", "number"], [res2_m, point_m]);
+        var res = Module.HEAPU8.subarray(res2_m, res2_m + KEY_SIZE);
+        Module._free(h_m);
+        Module._free(point_m);
+        //Module._free(point2_m);
+        //Module._free(res_m);
+        Module._free(res2_m);
+        return bintohex(res);
+    };
+
     this.generate_key_image_2 = function(pub, sec) {
         if (!pub || !sec || pub.length !== 64 || sec.length !== 64) {
             throw "Invalid input length";
@@ -527,7 +583,7 @@ var cnUtil = (function(initConfig) {
     };
 
     //curve and scalar functions; split out to make their host functions cleaner and more readable
-    //inverts X coordinate
+    //inverts X coordinate -- this seems correct ^_^ -luigi1111
     this.ge_neg = function(point) {
       if (point.length !== 64){
         throw "expected 64 char hex string";
@@ -535,7 +591,7 @@ var cnUtil = (function(initConfig) {
       return point.slice(0,62) + ((parseInt(point.slice(62,63), 16) + 8) % 16).toString(16) + point.slice(63,64);
     };
 
-    //adds two points together
+    //adds two points together, order does not matter
     this.ge_add = function(point1, point2) {
         var point1_m = Module._malloc(KEY_SIZE);
         var point2_m = Module._malloc(KEY_SIZE);
@@ -593,7 +649,7 @@ var cnUtil = (function(initConfig) {
         return bintohex(res);
     };
 
-    //res = k - (sigc*sec)
+    //res = k - (sigc*sec); argument names copied from the signature implementation
     this.sc_mulsub = function(sigc, sec, k) {
         if (k.length !== KEY_SIZE * 2 || sigc.length !== KEY_SIZE * 2 || sec.length !== KEY_SIZE * 2 || !this.valid_hex(k) || !this.valid_hex(sigc) || !this.valid_hex(sec)) {
             throw "bad scalar";
@@ -615,7 +671,7 @@ var cnUtil = (function(initConfig) {
         return bintohex(res);
     };
 
-    //res = sigc * pub + sigr * G
+    //res = sigc * pub + sigr * G; argument names also copied from the signature implementation
     this.ge_double_scalarmult_base_vartime = function(sigc, pub, sigr) {
         var pub_m = Module._malloc(KEY_SIZE);
         var pub2_m = Module._malloc(STRUCT_SIZES.GE_P3);
@@ -644,7 +700,7 @@ var cnUtil = (function(initConfig) {
         return bintohex(res);
     };
 
-    //res = sigr * Hp(pub) + sigc * k_image;
+    //res = sigr * Hp(pub) + sigc * k_image; argument names also copied from the signature implementation; note precomp is done internally!
     this.ge_double_scalarmult_precomp_vartime = function(sigr, pub, sigc, k_image) {
         var image_m = Module._malloc(STRUCT_SIZES.KEY_IMAGE);
         Module.HEAPU8.set(hextobin(k_image), image_m);
