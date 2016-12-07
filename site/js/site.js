@@ -127,7 +127,7 @@ function cn_faster_hash(hex){
 }
 
 function hexXor(hex1, hex2){
-    if (!hex1 || !hex2 || hex1.length !== hex2.length || hex1.length % 2 !== 0 || hex2.length % 2 !== 0){return false;}
+    if (!hex1 || !hex2 || hex1.length !== hex2.length || hex1.length % 2 !== 0 || hex2.length % 2 !== 0){throw "bad input";}
     var bin1 = hextobin(hex1);
     var bin2 = hextobin(hex2);
     var xor = new Uint8Array(bin1.length);
@@ -144,6 +144,16 @@ function swapEndian(hex){
         data += hex.substr(0 - 2 * i, 2);
     }
     return data;
+}
+
+//for most uses you'll also want to swapEndian after conversion
+function d2h256(decimal){
+    if (typeof decimal !== "string"){throw "decimal number should be entered as a string for precision";}
+    var padding = "";
+    for (i = 0; i < 63; i++){
+        padding += "0";
+    }
+    return (padding + JSBigInt(decimal).toString(16)).slice(-64);
 }
 
 //addressestests/gen.html functions
@@ -184,18 +194,27 @@ function allRandom(){
 
 function allRandomMm(){
     var netbyte = pubAddrNetByte.value;
+    var hs = rand_16();
+    var hs32 = cn_fast_hash(hs);
+    var i = 0;
+    while (hs32 !== sc_reduce32(hs32)){
+        hs = rand_16();
+        hs32 = cn_fast_hash(hs);
+        i++
+    }
+    console.log("Found simplewallet-compatible MyMonero seed after " + i + " attempts (~16 expected).");
     if (netbyte === "11"){
-        var hs = rand_16();
+        //var hs = rand_16();
         var mn = mn_encode(hs, mnDictTag.value);
-        var privSk = sc_reduce32(hs);
+        var privSk = sc_reduce32(hs32);
         var pubSk = sec_key_to_pub(privSk);
         var privVk = sc_reduce32(cn_fast_hash(pubSk));
         var pubVk = sec_key_to_pub(privVk);
     } else {
-        var hs = rand_16();
+        //var hs = rand_16();
         var mn = mn_encode(hs, mnDictTag.value);
-        var privSk = sc_reduce32(cn_fast_hash(hs));
-        var privVk = sc_reduce32(cn_fast_hash(cn_fast_hash(hs)));
+        var privSk = sc_reduce32(hs32);
+        var privVk = sc_reduce32(cn_fast_hash(hs32));
         var pubSk = sec_key_to_pub(privSk);
         var pubVk = sec_key_to_pub(privVk);
         if (netbyte === "13"){
@@ -304,7 +323,10 @@ function encryptMn(encrypt){
         mnemonic.value = "Decrypting...";
     }
     setTimeout(function (encrypt, mn, pass){
+        var d = new Date().getTime(); 
         var key = bintohex(SlowHash.string(pass));
+        var t = d - new Date().getTime();
+        console.log("cn_slow_hash time: " + t);
         var mnResult = mn_encode(hex_xor(mn, key.slice(0, mn.length)));
         if (encrypt){
             encMnTag.value = mnResult;
@@ -329,7 +351,10 @@ function deriveAddr(){
     var pass = encKey2Tag.value;
     derivedAddrTag.value = "Calculating...";
     setTimeout(function (keys, pass){
+        var d = new Date().getTime(); 
         var scalar = sc_reduce32(bintohex(SlowHash.string(pass)));
+        var t = d - new Date().getTime();
+        console.log("cn_slow_hash time: " + t);
         var pub2 = sec_key_to_pub(scalar);
         var derivedPub = ge_add(keys.spend, pub2);
         derivedAddrTag.value = pubkeys_to_string(derivedPub, keys.view);
@@ -352,7 +377,10 @@ function derive2faKeys(){
     var pass = encKey2Tag.value;
     derivedAddrTag.value = "Calculating...";
     setTimeout(function (scalar1, pass){
+        var d = new Date().getTime(); 
         var scalar2 = sc_reduce32(bintohex(SlowHash.string(pass)));
+        var t = d - new Date().getTime();
+        console.log("cn_slow_hash time: " + t);
         var spendKey = sc_add(scalar1, scalar2);
         var viewKey = sc_reduce32(cn_fast_hash(scalar1));
         derivedAddrTag.value = pubkeys_to_string(sec_key_to_pub(spendKey), sec_key_to_pub(viewKey));
@@ -826,7 +854,10 @@ function cryptonightWorker(){
     }
     document.getElementById('slowHashOut').value = "Calculating...";
     setTimeout(function (data){
+        var d = new Date().getTime();
         var result = bintohex(SlowHash.hex(data));
+        var t = d - new Date().getTime();
+        console.log("cn_slow_hash time: " + t);
         document.getElementById('slowHashOut').value = result;
-    }, 0, data);
+    }, 50, data);
 }
