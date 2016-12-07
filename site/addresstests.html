@@ -68,7 +68,7 @@
 				<option value="11">XMR Truncated</option>
 			</select>
 			<label for="pubAddrNetByte">&nbsp;Network Byte:&nbsp;</label>
-			<input type="text" id="pubAddrNetByte" value="12" size="4" disabled />
+			<input type="text" id="pubAddrNetByte" value="12" size="4" readonly="readonly" />
 			&nbsp;&nbsp;
 			<label for="mnDict">Mnemonic Dictionary</label>
 			<select id="mnDict">
@@ -147,36 +147,36 @@
 			<br>
 			<br>
 			<label for="pubAddrHex">&nbsp;9. Public Address Hex:&nbsp;</label>
-			<input type="text" id="pubAddrHex" placeholder="2 (network) + 64 (spendkey) + 64 (viewkey) + 8 (checksum) Base16 digits" size="140" disabled />
+			<input type="text" id="pubAddrHex" placeholder="2 (network) + 64 (spendkey) + 64 (viewkey) + 8 (checksum) Base16 digits" size="140" readonly="readonly" />
 			<br>
 			<br>
 			<label for="pubSpend2">&nbsp;10. Decoded:&nbsp;</label>
-			<input type="text" id="pubSpend2" placeholder="Public Spend Key" size="66" disabled />
-			<input type="text" id="pubView2" placeholder="Public View Key" size="66" disabled />
+			<input type="text" id="pubSpend2" placeholder="Public Spend Key" size="66" readonly="readonly" />
+			<input type="text" id="pubView2" placeholder="Public View Key" size="66" readonly="readonly" />
 			<br>
 			<br>
-			<input type="text" id="extraInput" placeholder="Payment ID (Integrated Address Only) OR Private View Key (Truncated Address Only)" size="90" disabled />
+			<input type="text" id="extraInput" placeholder="Payment ID (Integrated Address Only) OR Private View Key (Truncated Address Only)" size="90" readonly="readonly" />
 			<br>
 			<br>
 			<label for="pubAddrChksum">&nbsp;11. Address Checksum:&nbsp;</label>
-			<input type="text" id="pubAddrChksum" placeholder="Last 4 bytes of 9" size="18" disabled />
+			<input type="text" id="pubAddrChksum" placeholder="Last 4 bytes of 9" size="18" readonly="readonly" />
 			<br>
 			<br>
 			<label for="pubAddrForHash">&nbsp;12. Netbyte + 10:&nbsp;</label>
-			<input type="text" id="pubAddrForHash" placeholder="2 + 64 [+ 64 [+ 16]] Base16 digits" size="140" disabled />
+			<input type="text" id="pubAddrForHash" placeholder="2 + 64 [+ 64 [+ 16]] Base16 digits" size="140" readonly="readonly" />
 			<br>
 			<br>
 			<label for="pubAddrHash">&nbsp;13. Hash of 12:&nbsp;</label>
-			<input type="text" id="pubAddrHash" placeholder="256-bit keccak hash" size="66" disabled />
+			<input type="text" id="pubAddrHash" placeholder="256-bit keccak hash" size="66" readonly="readonly" />
 			<br>
 			<br>
 			<label for="pubAddrChksum2">&nbsp;14. Checksum:&nbsp;</label>
-			<input type="text" id="pubAddrChksum2" placeholder="First 4 bytes of 13" size="20" disabled />
+			<input type="text" id="pubAddrChksum2" placeholder="First 4 bytes of 13" size="20" readonly="readonly" />
 			<span>Does #14 equal #11?&nbsp; <span id="validYes"></span><span id="validNo"></span></span>
 			<br>
 			<br>
 			<label for="xmrAddr">&nbsp;15. Standard XMR:&nbsp;</label>
-			<input type="text" id="xmrAddr" placeholder="Address represented in standard XMR format" size="110" disabled />
+			<input type="text" id="xmrAddr" placeholder="Address represented in standard XMR format" size="110" readonly="readonly" />
 
 			<br>
 			<br>
