@@ -30,6 +30,7 @@
 	#main-wrapper {width: 1650px; margin: 0 auto;}
 	#addrGen {background-color: #ddd; padding-top: 1px;}
 	#addrGen > h2 {margin-top: 0px;}
+	#bwGen {background-color: #ddd; padding-top: 1px;}
 	#addrCheck {background-color: #ddd; padding-top: 1px; width: 1300px;}
 	#explanation {background-color: #ddd; padding-top: 1px;}
 	#randomButtons {float: right; margin-right: 10px;}
@@ -137,6 +138,7 @@
 			<h2>QR Code</h2>
 			<div id="qr"></div>
 		</span>	
+		
 		<div id="addrCheck">
 			
 			<h2>Check Address</h2>
@@ -181,7 +183,45 @@
 			<br>
 			<br>
 		</div>
-	
+		<br>
+		<br>
+		<div id="bwGen">
+			<h2>Brainwallet Address Generator</h2>
+			<span style="font-size:small;">&nbsp;&nbsp;Note: brainwallets have specific use cases. Most of the time they are <i>extremely</i> risky to use. If you are unaware of the risks of brainwallets, <b>do not use this</b></span>
+			<br>
+			<br>
+			<label for="bw_input">&nbsp;1. Brainwallet Phrase:&nbsp;&nbsp;&nbsp;&nbsp;</label>
+			<textarea id="bw_input" cols="120" rows="2" placeholder="An easy to remember but necessarily unique phrase or string"></textarea>
+			<button onclick="bwGen();">Generate</button>
+			<br>
+			<br>
+			<label for="bw_mnemonic">&nbsp;2. Mnemonic Seed:&nbsp;&nbsp;&nbsp;&nbsp;</label>
+			<textarea id="bw_mnemonic" cols="120" rows="2" placeholder="Mnemonic seed"></textarea>
+			<br>
+			<br>
+			<label for="bw_hexSeed">&nbsp;3. Hexadecimal Seed:</label>
+			<input type="text" id="bw_hexSeed" placeholder="Hex Seed" size="66" />
+			<br>
+			<br>
+			<label for="bw_privSpend">&nbsp;4. Private Spend Key:</label>
+			<input type="text" id="bw_privSpend" placeholder="Private Spend Key" size="66" />
+			<label class="prView" for="privView">5. Private View Key:&nbsp;</label>
+			<input type="text" id="bw_privView" placeholder="Private View Key" size="66" />
+			<br>
+			<br>
+			<label for="bw_pubSpend">&nbsp;6. Public Spend Key:&nbsp;</label>
+			<input type="text" id="bw_pubSpend" placeholder="Public Spend Key" size="66" />
+			<label  class="puView" for="bw_pubView">7. Public View Key:&nbsp;&nbsp;</label>
+			<input type="text" id="bw_pubView" placeholder="Public View Key" size="66" />
+			<br>
+			<br>
+			<div class="centerDiv">
+				<label for="bw_pubAddr">8. Public Address:&nbsp;</label>
+				<input type="text" id="bw_pubAddr" placeholder="Public Address Base58" size="110" />
+			</div>
+			<br>
+			<br>
+		</div>
 		<br>
 		<br>
 		
