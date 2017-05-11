@@ -66,6 +66,120 @@ var cnUtil = (function(initConfig) {
         SIGNATURE: 64 // ec_scalar * 2
     };
 
+    //RCT vars
+    var H = "8b655970153799af2aeadc9ff1add0ea6c7251d54154cfa92c173a0dd39c1f94"; //base H for amounts
+    var l = JSBigInt("7237005577332262213973186563042994240857116359379907606001950938285454250989"); //curve order (not RCT specific)
+    var I = "0100000000000000000000000000000000000000000000000000000000000000"; //identity element
+    var Z = "0000000000000000000000000000000000000000000000000000000000000000"; //zero scalar
+    //H2 object to speed up some operations
+    var H2 = ["8b655970153799af2aeadc9ff1add0ea6c7251d54154cfa92c173a0dd39c1f94", "8faa448ae4b3e2bb3d4d130909f55fcd79711c1c83cdbccadd42cbe1515e8712",
+        "12a7d62c7791654a57f3e67694ed50b49a7d9e3fc1e4c7a0bde29d187e9cc71d", "789ab9934b49c4f9e6785c6d57a498b3ead443f04f13df110c5427b4f214c739",
+        "771e9299d94f02ac72e38e44de568ac1dcb2edc6edb61f83ca418e1077ce3de8", "73b96db43039819bdaf5680e5c32d741488884d18d93866d4074a849182a8a64",
+        "8d458e1c2f68ebebccd2fd5d379f5e58f8134df3e0e88cad3d46701063a8d412", "09551edbe494418e81284455d64b35ee8ac093068a5f161fa6637559177ef404",
+        "d05a8866f4df8cee1e268b1d23a4c58c92e760309786cdac0feda1d247a9c9a7", "55cdaad518bd871dd1eb7bc7023e1dc0fdf3339864f88fdd2de269fe9ee1832d",
+        "e7697e951a98cfd5712b84bbe5f34ed733e9473fcb68eda66e3788df1958c306", "f92a970bae72782989bfc83adfaa92a4f49c7e95918b3bba3cdc7fe88acc8d47",
+        "1f66c2d491d75af915c8db6a6d1cb0cd4f7ddcd5e63d3ba9b83c866c39ef3a2b", "3eec9884b43f58e93ef8deea260004efea2a46344fc5965b1a7dd5d18997efa7",
+        "b29f8f0ccb96977fe777d489d6be9e7ebc19c409b5103568f277611d7ea84894", "56b1f51265b9559876d58d249d0c146d69a103636699874d3f90473550fe3f2c",
+        "1d7a36575e22f5d139ff9cc510fa138505576b63815a94e4b012bfd457caaada", "d0ac507a864ecd0593fa67be7d23134392d00e4007e2534878d9b242e10d7620",
+        "f6c6840b9cf145bb2dccf86e940be0fc098e32e31099d56f7fe087bd5deb5094", "28831a3340070eb1db87c12e05980d5f33e9ef90f83a4817c9f4a0a33227e197",
+        "87632273d629ccb7e1ed1a768fa2ebd51760f32e1c0b867a5d368d5271055c6e", "5c7b29424347964d04275517c5ae14b6b5ea2798b573fc94e6e44a5321600cfb",
+        "e6945042d78bc2c3bd6ec58c511a9fe859c0ad63fde494f5039e0e8232612bd5", "36d56907e2ec745db6e54f0b2e1b2300abcb422e712da588a40d3f1ebbbe02f6",
+        "34db6ee4d0608e5f783650495a3b2f5273c5134e5284e4fdf96627bb16e31e6b", "8e7659fb45a3787d674ae86731faa2538ec0fdf442ab26e9c791fada089467e9",
+        "3006cf198b24f31bb4c7e6346000abc701e827cfbb5df52dcfa42e9ca9ff0802", "f5fd403cb6e8be21472e377ffd805a8c6083ea4803b8485389cc3ebc215f002a",
+        "3731b260eb3f9482e45f1c3f3b9dcf834b75e6eef8c40f461ea27e8b6ed9473d", "9f9dab09c3f5e42855c2de971b659328a2dbc454845f396ffc053f0bb192f8c3",
+        "5e055d25f85fdb98f273e4afe08464c003b70f1ef0677bb5e25706400be620a5", "868bcf3679cb6b500b94418c0b8925f9865530303ae4e4b262591865666a4590",
+        "b3db6bd3897afbd1df3f9644ab21c8050e1f0038a52f7ca95ac0c3de7558cb7a", "8119b3a059ff2cac483e69bcd41d6d27149447914288bbeaee3413e6dcc6d1eb",
+        "10fc58f35fc7fe7ae875524bb5850003005b7f978c0c65e2a965464b6d00819c", "5acd94eb3c578379c1ea58a343ec4fcff962776fe35521e475a0e06d887b2db9",
+        "33daf3a214d6e0d42d2300a7b44b39290db8989b427974cd865db011055a2901", "cfc6572f29afd164a494e64e6f1aeb820c3e7da355144e5124a391d06e9f95ea",
+        "d5312a4b0ef615a331f6352c2ed21dac9e7c36398b939aec901c257f6cbc9e8e", "551d67fefc7b5b9f9fdbf6af57c96c8a74d7e45a002078a7b5ba45c6fde93e33",
+        "d50ac7bd5ca593c656928f38428017fc7ba502854c43d8414950e96ecb405dc3", "0773e18ea1be44fe1a97e239573cfae3e4e95ef9aa9faabeac1274d3ad261604",
+        "e9af0e7ca89330d2b8615d1b4137ca617e21297f2f0ded8e31b7d2ead8714660", "7b124583097f1029a0c74191fe7378c9105acc706695ed1493bb76034226a57b",
+        "ec40057b995476650b3db98e9db75738a8cd2f94d863b906150c56aac19caa6b", "01d9ff729efd39d83784c0fe59c4ae81a67034cb53c943fb818b9d8ae7fc33e5",
+        "00dfb3c696328c76424519a7befe8e0f6c76f947b52767916d24823f735baf2e", "461b799b4d9ceea8d580dcb76d11150d535e1639d16003c3fb7e9d1fd13083a8",
+        "ee03039479e5228fdc551cbde7079d3412ea186a517ccc63e46e9fcce4fe3a6c", "a8cfb543524e7f02b9f045acd543c21c373b4c9b98ac20cec417a6ddb5744e94",
+        "932b794bf89c6edaf5d0650c7c4bad9242b25626e37ead5aa75ec8c64e09dd4f", "16b10c779ce5cfef59c7710d2e68441ea6facb68e9b5f7d533ae0bb78e28bf57",
+        "0f77c76743e7396f9910139f4937d837ae54e21038ac5c0b3fd6ef171a28a7e4", "d7e574b7b952f293e80dde905eb509373f3f6cd109a02208b3c1e924080a20ca",
+        "45666f8c381e3da675563ff8ba23f83bfac30c34abdde6e5c0975ef9fd700cb9", "b24612e454607eb1aba447f816d1a4551ef95fa7247fb7c1f503020a7177f0dd",
+        "7e208861856da42c8bb46a7567f8121362d9fb2496f131a4aa9017cf366cdfce", "5b646bff6ad1100165037a055601ea02358c0f41050f9dfe3c95dccbd3087be0",
+        "746d1dccfed2f0ff1e13c51e2d50d5324375fbd5bf7ca82a8931828d801d43ab", "cb98110d4a6bb97d22feadbc6c0d8930c5f8fc508b2fc5b35328d26b88db19ae",
+        "60b626a033b55f27d7676c4095eababc7a2c7ede2624b472e97f64f96b8cfc0e", "e5b52bc927468df71893eb8197ef820cf76cb0aaf6e8e4fe93ad62d803983104",
+        "056541ae5da9961be2b0a5e895e5c5ba153cbb62dd561a427bad0ffd41923199", "f8fef05a3fa5c9f3eba41638b247b711a99f960fe73aa2f90136aeb20329b888"];
+
+    //begin rct new functions
+    //creates a Pedersen commitment from an amount (in scalar form) and a mask
+    //C = bG + aH where b = mask, a = amount
+    function commit(amount, mask){
+        if (!valid_hex(mask) || mask.length !== 64 || !valid_hex(amount) || amount.length !== 64){
+            throw "invalid amount or mask!";
+        }
+        var C = ge_double_scalarmult_base_vartime(amount, H, mask);
+        return C;
+    }
+
+    //switch byte order for hex string
+    function swapEndian(hex){
+        if (hex.length % 2 !== 0){return "length must be a multiple of 2!";}
+        var data = "";
+        for (var i=1; i <= hex.length / 2; i++){
+            data += hex.substr(0 - 2 * i, 2);
+        }
+        return data;
+    }
+
+    //switch byte order charwise
+    function swapEndianC(string){
+        var data = "";
+        for (var i=1; i <= string.length; i++){
+            data += string.substr(0 - i, 1);
+        }
+        return data;
+    }
+
+    //for most uses you'll also want to swapEndian after conversion
+    //mainly to convert integer "scalars" to usable hexadecimal strings
+    function d2h(integer){
+        if (typeof integer !== "string" && integer.toString().length > 15){throw "integer should be entered as a string for precision";}
+        var padding = "";
+        for (i = 0; i < 63; i++){
+            padding += "0";
+        }
+        return (padding + JSBigInt(integer).toString(16).toLowerCase()).slice(-64);
+    }
+
+    //integer to scalar
+    function d2s(integer){
+        return swapEndian(d2h(integer));
+    }
+
+    function s2d(scalar){
+        return JSBigInt.parse(swapEndian(scalar), 16).toString();
+    }
+
+    //convert integer string to 64bit "binary" little-endian string
+    function d2b(integer){
+        if (typeof integer !== "string" && integer.toString().length > 15){throw "integer should be entered as a string for precision";}
+        var padding = "";
+        for (i = 0; i < 63; i++){
+            padding += "0";
+        }
+        var a = new JSBigInt(integer);
+        if (a.toString(2).length > 64){throw "amount overflows uint64!";}
+        return swapEndianC((padding + a.toString(2)).slice(-64));
+    }
+
+    //convert integer string to 64bit base 4 little-endian string
+    function d2b4(integer){
+        if (typeof integer !== "string" && integer.toString().length > 15){throw "integer should be entered as a string for precision";}
+        var padding = "";
+        for (i = 0; i < 31; i++){
+            padding += "0";
+        }
+        var a = new JSBigInt(integer);
+        if (a.toString(2).length > 64){throw "amount overflows uint64!";}
+        return swapEndianC((padding + a.toString(4)).slice(-32));
+    }
+    //end rct new functions
+
     this.valid_hex = function(hex) {
         var exp = new RegExp("[0-9a-fA-F]{" + hex.length + "}");
         return exp.test(hex);
@@ -329,6 +443,24 @@ var cnUtil = (function(initConfig) {
         var expected_view_pub = this.sec_key_to_pub(view_sec);
         var expected_spend_pub = this.sec_key_to_pub(spend_sec);
         return (expected_spend_pub === spend_pub) && (expected_view_pub === view_pub);
+    };
+
+    this.decode_rct_ecdh = function(ecdh, key) {
+        var first = this.hash_to_scalar(key);
+        var second = this.hash_to_scalar(first);
+        return {
+            "mask": sc_sub(ecdh.mask, first),
+            "amount": sc_sub(ecdh.amount, second)
+        };
+    };
+
+    this.encode_rct_ecdh = function(ecdh, key) {
+        var first = this.hash_to_scalar(key);
+        var second = this.hash_to_scalar(first);
+        return {
+            "mask": sc_add(ecdh.mask, first),
+            "amount": sc_add(ecdh.amount)
+        };
     };
 
     this.hash_to_scalar = function(buf) {
@@ -649,7 +781,33 @@ var cnUtil = (function(initConfig) {
         return bintohex(res);
     };
 
-    //res = k - (sigc*sec); argument names copied from the signature implementation
+    //subtracts one scalar from another
+    this.sc_sub = function(scalar1, scalar2) {
+        if (scalar1.length !== 64 || scalar2.length !== 64) {
+            throw "Invalid input length!";
+        }
+        var scalar1_m = Module._malloc(STRUCT_SIZES.EC_SCALAR);
+        var scalar2_m = Module._malloc(STRUCT_SIZES.EC_SCALAR);
+        Module.HEAPU8.set(hextobin(scalar1), scalar1_m);
+        Module.HEAPU8.set(hextobin(scalar2), scalar2_m);
+        var derived_m = Module._malloc(STRUCT_SIZES.EC_SCALAR);
+        Module.ccall("sc_sub", "void", ["number", "number", "number"], [derived_m, scalar1_m, scalar2_m]);
+        var res = Module.HEAPU8.subarray(derived_m, derived_m + STRUCT_SIZES.EC_SCALAR);
+        Module._free(scalar1_m);
+        Module._free(scalar2_m);
+        Module._free(derived_m);
+        return bintohex(res);
+    };
+
+    //fun mul function
+    this.sc_mul = function(scalar1, scalar2) {
+        if (scalar1.length !== 64 || scalar2.length !== 64) {
+            throw "Invalid input length!";
+        }
+        return d2s(JSBigInt(s2d(scalar1)).multiply(JSBigInt(s2d(scalar2))).remainder(l).toString());
+    };
+
+    //res = c - (ab) mod l; argument names copied from the signature implementation
     this.sc_mulsub = function(sigc, sec, k) {
         if (k.length !== KEY_SIZE * 2 || sigc.length !== KEY_SIZE * 2 || sec.length !== KEY_SIZE * 2 || !this.valid_hex(k) || !this.valid_hex(sigc) || !this.valid_hex(sec)) {
             throw "bad scalar";
@@ -671,7 +829,7 @@ var cnUtil = (function(initConfig) {
         return bintohex(res);
     };
 
-    //res = sigc * pub + sigr * G; argument names also copied from the signature implementation
+    //res = aB + cG; argument names copied from the signature implementation
     this.ge_double_scalarmult_base_vartime = function(sigc, pub, sigr) {
         var pub_m = Module._malloc(KEY_SIZE);
         var pub2_m = Module._malloc(STRUCT_SIZES.GE_P3);
@@ -700,8 +858,9 @@ var cnUtil = (function(initConfig) {
         return bintohex(res);
     };
 
-    //res = sigr * Hp(pub) + sigc * k_image; argument names also copied from the signature implementation; note precomp is done internally!
-    this.ge_double_scalarmult_precomp_vartime = function(sigr, pub, sigc, k_image) {
+    //res = a * Hp(B) + c*D
+    //res = sigr * Hp(pub) + sigc * k_image; argument names also copied from the signature implementation; note precomp AND hash_to_ec are done internally!!
+    this.ge_double_scalarmult_postcomp_vartime = function(sigr, pub, sigc, k_image) {
         var image_m = Module._malloc(STRUCT_SIZES.KEY_IMAGE);
         Module.HEAPU8.set(hextobin(k_image), image_m);
         var image_unp_m = Module._malloc(STRUCT_SIZES.GE_P3);
@@ -732,6 +891,336 @@ var cnUtil = (function(initConfig) {
         Module._free(res_m);
         return bintohex(res);
     };
+
+    //begin RCT functions
+
+    //xv: vector of secret keys, 1 per ring (nrings)
+    //pm: matrix of pubkeys, indexed by size first
+    //iv: vector of indexes, 1 per ring (nrings), can be a string
+    //size: ring size
+    //nrings: number of rings
+    //extensible borromean signatures
+    this.genBorromean = function(xv, pm, iv, size, nrings){
+      if (xv.length !== nrings){
+        throw "wrong xv length " + xv.length;
+      }
+      if (pm.length !== size){
+        throw "wrong pm size " + pm.length;
+      }
+      for (var i = 0; i < pm.length; i++){
+        if (pm[i].length !== nrings){
+          throw "wrong pm[" + i + "] length " + pm[i].length;
+        }
+      }
+      if (iv.length !== nrings){
+        throw "wrong iv length " + iv.length;
+      }
+      for (var i = 0; i < iv.length; i++){
+        if (iv[i] >= size){
+          throw "bad indices value at: " + i + ": " + iv[i];
+        }
+      }
+      //signature struct
+      var bb = {
+        s: [],
+        ee: ""
+      };
+      //signature pubkey matrix
+      var L = [];
+      //add needed sub vectors (1 per ring size)
+      for (var i = 0; i < size; i++){
+        bb.s[i] = [];
+        L[i] = [];
+      }
+      //compute starting at the secret index to the last row
+      var index;
+      var alpha = [];
+      for (var i = 0; i < nrings; i++){
+        index = parseInt(iv[i]);
+        alpha[i] = random_scalar();
+        L[index][i] = ge_scalarmult_base(alpha[i]);
+        for (var j = index + 1; j < size; j++){
+          bb.s[j][i] = random_scalar();
+          var c = hash_to_scalar(L[j-1][i]);
+          L[j][i] = ge_double_scalarmult_base_vartime(c, pm[j][i], bb.s[j][i]);
+        }
+      }
+      //hash last row to create ee
+      var ltemp = "";
+      for (var i = 0; i < nrings; i++){
+        ltemp += L[size-1][i];
+      }
+      bb.ee = hash_to_scalar(ltemp);
+      //compute the rest from 0 to secret index
+      for (var i = 0; i < nrings; i++){
+        var cc = bb.ee
+        for (var j = 0; j < indices[i]; j++){
+          bb.s[j][i] = random_scalar();
+          var LL = ge_double_scalarmult_base_vartime(cc, pm[j][i], bb.s[j][i]);
+          cc = hash_to_scalar(LL);
+        }
+        bb.s[j][i] = sc_mulsub(xv[i], cc, alpha[i]);
+      }
+      return bb;
+    };
+    
+    this.verBorromean = function(bb, pm){
+      var Lv1 = "";
+      for (var i = 0; i < bb.s[0].length; i++){
+        var c = bb.ee;
+        for (var j = 0; j < bb.s.length - 1; j++){
+          var LL = ge_double_scalarmult_base_vartime(c, pm[j][i], bb.s[j][i]);
+          c = hash_to_scalar(LL);
+        }
+        console.log(j);
+        Lv1 += ge_double_scalarmult_base_vartime(c, pm[j][i], bb.s[j][i]);
+      }
+      var eeComputed = hash_to_scalar(Lv1);
+      return (eeComputed === bb.ee);
+    };
+    
+    //proveRange
+    //proveRange gives C, and mask such that \sumCi = C
+    //   c.f. http://eprint.iacr.org/2015/1098 section 5.1
+    //   and Ci is a commitment to either 0 or s^i, i=0,...,n
+    //   thus this proves that "amount" is in [0, s^n] (we assume s to be 4) (2 for now with v2 txes)
+    //   mask is a such that C = aG + bH, and b = amount
+    //commitMaskObj = {C: commit, mask: mask}
+    this.proveRange = function(commitMaskObj, amount, nrings, enc_seed, exponent){
+      var size = 2;
+      var C = I; //identity
+      var mask = Z; //zero scalar
+      var indices = d2b(amount); //base 2 for now
+      var sig = {
+        Ci: []
+        //exp: exponent //doesn't exist for now
+      }
+      /*payload stuff - ignore for now
+      seeds = new Array(3);
+      for (var i = 0; i < seeds.length; i++){
+        seeds[i] = new Array(1);
+      }
+      genSeeds(seeds, enc_seed);
+      */
+      var ai = [];
+      var PM = [];
+      for (var i = 0; i < size; i++){
+        PM[i] = [];
+      }
+      var j;
+      //start at index and fill PM left and right -- PM[0] holds Ci
+      for (i = 0; i < nrings; i++){
+        ai[i] = random_scalar();
+        j = indices[i];
+        PM[j][i] = ge_scalarmult_base(ai[i]);
+        while (j > 0){
+          j--;
+          PM[j][i] = ge_add(PM[j+1][i], H2[i]); //will need to use i*2 for base 4 (or different object)
+        }
+        j = indices[i];
+        while (j < size - 1){
+          j++;
+          PM[j][i] = ge_sub(PM[j-1][i], H2[i]); //will need to use i*2 for base 4 (or different object)
+        }
+        mask = sc_add(mask, ai[i]);
+      }
+      /*
+      * some more payload stuff here
+      */
+      //copy commitments to sig and sum them to commitment
+      for (i = 0; i < nrings; i++){
+        //if (i < nrings - 1) //for later version
+        sig.Ci[i] = PM[0][i];
+        C = ge_add(C, PM[0][i]);
+      }
+      /* exponent stuff - ignore for now
+      if (exponent){
+        n = JSBigInt(10);
+        n = n.pow(exponent).toString();
+        mask = sc_mul(mask, d2s(n)); //new sum
+      }
+      */
+      sig.bsig = this.genBorromean(ai, PM, indices, size, nrings);
+      commitMaskObj.C = C;
+      commitMaskObj.mask = mask;
+      return sig;
+    };
+    
+    
+    function array_hash_to_scalar(array){
+      var buf = ""
+      for (var i = 0; i < array.length; i++){
+        if (typeof array[i] !== "string"){throw "unexpected array element";}
+        buf += array[i];
+      }
+      return hash_to_scalar(buf);
+    }
+    
+    // Gen creates a signature which proves that for some column in the keymatrix "pk"
+    //   the signer knows a secret key for each row in that column
+    // we only support matrices of 2 rows (pubkey, commitment)
+    // because we don't want to force same secret column for all inputs
+    this.MLSAG_Gen = function(message, pk, xx, kimg, index){
+      var cols = pk.length; //ring size
+      if (index >= cols){throw "index out of range";}
+      var rows = pk[0].length; //number of signature rows (always 2)
+      if (rows !== 2){throw "wrong row count";}
+      for (var i = 0; i < cols; i++){
+        if (pk[i].length !== rows){throw "pk is not rectangular";}
+      }
+      if (xx.length !== rows){throw "bad xx size";}
+    
+      var c_old = "";
+      var alphas = [];
+    
+      var rv = {
+        ss: [],
+        cc: null,
+      };
+      for (i = 0; i < cols; i++){
+        rv.ss[i] = [];
+      }
+      var toHash = []; //holds 6 elements: message, pubkey, dsRow L, dsRow R, commitment, ndsRow L
+      toHash[0] = message;
+      
+      //secret index (pubkey section)
+      alpha[0] = random_scalar(); //need to save alphas for later
+      toHash[1] = pk[index][0]; //secret index pubkey
+      toHash[2] = ge_scalarmult_base(alpha[0]); //dsRow L
+      toHash[3] = generate_key_image_2(pk[index][0], alpha[0]); //dsRow R (key image check)
+      //secret index (commitment section)
+      alpha[1] = random_scalar();
+      toHash[4] = pk[index][1]; //secret index commitment
+      toHash[5] = ge_scalarmult_base(alpha[1]); //ndsRow L
+    
+      c_old = array_hash_to_scalar(toHash);
+    
+      i = (index + 1) % cols;
+      if (i === 0){
+        rv.cc = c_old;
+      }
+      while (i != index){
+        rv.ss[i][0] = random_scalar(); //dsRow ss
+        rv.ss[i][1] = random_scalar(); //ndsRow ss
+    
+        //!secret index (pubkey section)
+        toHash[1] = pk[i][0];
+        toHash[2] = ge_double_scalarmult_base_vartime(c_old, pk[i][0], rv.ss[i][0]);
+        toHash[3] = ge_double_scalarmult_postcomp_vartime(rv.ss[i][0], pk[i][0], c_old, kimg);
+        //!secret index (commitment section)
+        toHash[4] = pk[i][1];
+        toHash[5] = ge_double_scalarmult_base_vartime(c_old, pk[i][1], rv.ss[i][1]);
+        c_old = array_hash_to_scalar(toHash); //hash to get next column c
+        i = (i + 1) % cols;
+        if (i === 0){
+          rv.cc = c_old;
+        }
+      }
+      for (i = 0; i < rows; i++){
+        rv.ss[index][i] = sc_mulsub(c_old, xx[i], alpha[i]);
+      }
+      return rv;
+    };
+    
+    //prepares for MLSAG_Gen
+    this.proveRctMG = function(message, pubs, inSk, kimg, mask, Cout, index){
+      var cols = pubs.length;
+      if (cols < 3){throw "cols must be > 2 (mixin)";}
+      var xx = [];
+      var PK = [
+        [],
+        []
+      ];
+      //fill pubkey matrix (copy destination, subtract commitments)
+      for (var i = 0; i < cols; i++){
+        PK[i][0] = pubs[i].dest;
+        PK[i][1] = ge_sub(pubs[i].mask, Cout);
+      }
+      xx[0] = inSk.x;
+      xx[1] = sc_sub(inSk.a, mask);
+      return this.MLSAG_Gen(message, PK, xx, kimg, index);
+    };
+    
+    //message is normal prefix hash
+    //inSk is vector of x,a
+    //kimg is vector of kimg
+    //destinations is vector of pubkeys
+    //inAmounts is vector of strings
+    //outAmounts is vector of strings
+    //mixRing is matrix of pubkey, commit (dest, mask)
+    //amountKeys is vector of scalars
+    //indices is vector
+    //txnFee is string
+    this.genRct = function(message, inSk, kimg, destinations, inAmounts, outAmounts, mixRing, amountKeys, indices, txnFee){
+      if (outAmounts.length !== destinations.length || amountKeys.length !== destinations.length){throw "different number of amounts/amount_keys vs destinations";}
+      for (var i = 0; i < mixRing.length; i++){
+        if (mixRing[i].length >= indices[i]){throw "bad mixRing/index size";}
+        if (mixRing[i].length !== inSk.length){throw "mismatched mixRing/inSk";}
+      }
+      if (inAmounts.length !== inSk.length){throw "mismatched inAmounts/inSk";}
+      if (indices.length !== inSk.length){throw "mismatched indices/inSk";}
+      
+      rv = {
+        type: inSk.length === 1 ? 1 : 2,
+        message: message,
+        outPk: [],
+        p: {
+          rangeSigs: [],
+          MGs: []
+        },
+        ecdhInfo: [],
+        txnFee: txnFee,
+        pseudoOuts: []
+      };
+      
+      var sumout = Z;
+      var cmObj = {
+        C: null,
+        mask: null,
+      };
+      var nrings = 64; //for base 2/current
+      //compute range proofs, etc
+      for (i = 0; i < destinations.length; i++){
+        rv.p.rangeSigs[i] = this.proveRange(cmObj, outAmounts[i], nrings, 0, 0);
+        rv.outPk[i] = cmObj.C;
+        sumout = sc_add(sumout, cmObj.mask);
+        rv.ecdhInfo[i] = {
+          mask: sc_add(hash_to_scalar(amountKeys), cmObj.mask),
+          amount: sc_add(hash_to_scalar(hash_to_scalar(amountKeys)), d2s(outAmounts[i]))
+        };
+      }
+    
+      //simple
+      if (rv.type === 2){
+        var ai = [];
+        var sumpouts = Z;
+        //create pseudoOuts
+        for (i = 0; i < inAmounts.length - 1; i++){
+          ai[i] = random_scalar();
+          sumpouts = sc_add(sumpouts, ai[i]);
+          rv.pseudoOuts[i] = commit(d2s(inAmounts[i]), ai[i]);
+        }
+        ai[i] = sc_sub(sumout, sumpouts);
+        rv.pseudoOuts[i] = commit(d2s(inAmounts[i]), ai[i]);
+        var full_message = get_pre_mlsag_hash(rv);
+        for (i = 0; i < inAmounts.length; i++){
+          rv.p.MGs[i] = this.proveRctMG(full_message, pubs[i], inSk[i], kimg[i], ai[i], rv.pseudoOuts[i], indices[i]);
+        }
+      } else {
+        var sumC = I;
+        //get sum of output commitments to use in MLSAG
+        for (i = 0; i < destinations.length; i++){
+          sumC = ge_add(sumC, rv.outPk[i]);
+        }
+        sumC = ge_add(sumC, ge_scalarmult(H, d2s(txnFee)));
+        var full_message = get_pre_mlsag_hash(rv);
+        rv.p.MGs.push = this.proveRctMG(full_message, pubs[0], inSk[0], kimg[0], sumout, sumC, indices[0]);
+      }
+      return rv;
+    };
+
+    //end RCT functions
+
 
     this.add_pub_key_to_extra = function(extra, pubkey) {
         if (pubkey.length !== 64) throw "Invalid pubkey length";
@@ -893,10 +1382,9 @@ var cnUtil = (function(initConfig) {
         }
         var k = this.random_scalar();
         var comm = this.sec_key_to_pub(k);
-        var sig = {};
-        sig.c = this.hash_to_scalar(prefix_hash + pub + comm);
-        sig.r = this.sc_mulsub(sig.c, sec, k);
-        return sig.c + sig.r;
+        var c = this.hash_to_scalar(prefix_hash + pub + comm);
+        var r = this.sc_mulsub(c, sec, k);
+        return c + r;
     };
 
 /* old version
@@ -1157,6 +1645,43 @@ var cnUtil = (function(initConfig) {
         Module._free(sig_m);
         Module._free(pub_m);
         return (scalar === sum);
+    };
+
+    //attempt at using my functions for readability; prefix_hash is 32 bytes hex, k_image same, pubs is array of same, sigs is array of 64 bytes hex
+    this.check_ring = function(prefix_hash, k_image, pubs, sigs) {
+        if (k_image.length !== STRUCT_SIZES.KEY_IMAGE * 2) {
+            console.log("invalid key image length");
+            return false;
+        }
+        if (prefix_hash.length !== HASH_SIZE * 2 || !this.valid_hex(prefix_hash)) {
+            console.log("Invalid prefix hash");
+            return false;
+        }
+        if (sigs.length !== pubs.length) {
+            console.log("number of sigs doesn't match number of pubs");
+            return false;
+        }
+        var sigar = [];
+        for (var i = 0; i < sigs.length; i++) {
+            sigar[i] = {
+            c: sigs[i].slice(0, 64),
+            r: sigs[i].slice(64)
+            };
+        }
+        var buf = prefix_hash;
+        var sum = d2h256("0"); //zero, should add wrapper for sc_0
+        for (var i = 0; i < pubs.length; i++) {
+            try {
+                buf += this.ge_double_scalarmult_base_vartime(sigar[i].c, pubs[i], sigar[i].r);
+                buf += this.ge_double_scalarmult_postcomp_vartime(sigar[i].r, pubs[i], sigar[i].c, k_image);
+                sum = sc_add(sum, sigar[i].c);
+            } catch (err) {
+                console.log(err);
+                return false; //signature didn't verify (due to bad pubkeys or scalars)
+            }
+        }
+        var comm_hash = hash_to_scalar(buf);
+        return (sum === comm_hash);
     };
 
     this.construct_tx = function(keys, sources, dsts, fee_amount, payment_id, pid_encrypt, realDestViewKey, unlock_time) {
