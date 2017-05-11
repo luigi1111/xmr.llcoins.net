@@ -28,7 +28,8 @@ dataHashTag, keyImageTag,
 keyImageResultsTag, encKeyTag,
 encMnTag, encKey2Tag, addrPt2Tag,
 derivedAddrTag, mnemonicPt2Tag,
-derivedSpendKeyTag, derivedViewKeyTag;
+derivedSpendKeyTag, derivedViewKeyTag,
+encTypeTag;
 
 var api = "http://moneroblocks.info/api/";
 
@@ -71,6 +72,7 @@ window.onload = function(){
     keyImageResultsTag = document.getElementById('keyImageResults');
     encKeyTag = document.getElementById('encKey');
     encMnTag = document.getElementById('encMn');
+    encTypeTag = document.getElementById('encType');
     encKey2Tag = document.getElementById('encKey2');
     addrPt2Tag = document.getElementById('addrPt2');
     derivedAddrTag = document.getElementById('derivedAddr');
@@ -82,6 +84,75 @@ window.onload = function(){
     }
 }
 
+//RCT amount base
+var H = "8b655970153799af2aeadc9ff1add0ea6c7251d54154cfa92c173a0dd39c1f94";
+var l = JSBigInt("7237005577332262213973186563042994240857116359379907606001950938285454250989");
+var I = "0100000000000000000000000000000000000000000000000000000000000000"; //identity element
+var Z = "0000000000000000000000000000000000000000000000000000000000000000"; //zero scalar
+var H2 = ["8b655970153799af2aeadc9ff1add0ea6c7251d54154cfa92c173a0dd39c1f94",
+    "8faa448ae4b3e2bb3d4d130909f55fcd79711c1c83cdbccadd42cbe1515e8712",
+    "12a7d62c7791654a57f3e67694ed50b49a7d9e3fc1e4c7a0bde29d187e9cc71d",
+    "789ab9934b49c4f9e6785c6d57a498b3ead443f04f13df110c5427b4f214c739",
+    "771e9299d94f02ac72e38e44de568ac1dcb2edc6edb61f83ca418e1077ce3de8",
+    "73b96db43039819bdaf5680e5c32d741488884d18d93866d4074a849182a8a64",
+    "8d458e1c2f68ebebccd2fd5d379f5e58f8134df3e0e88cad3d46701063a8d412",
+    "09551edbe494418e81284455d64b35ee8ac093068a5f161fa6637559177ef404",
+    "d05a8866f4df8cee1e268b1d23a4c58c92e760309786cdac0feda1d247a9c9a7",
+    "55cdaad518bd871dd1eb7bc7023e1dc0fdf3339864f88fdd2de269fe9ee1832d",
+    "e7697e951a98cfd5712b84bbe5f34ed733e9473fcb68eda66e3788df1958c306",
+    "f92a970bae72782989bfc83adfaa92a4f49c7e95918b3bba3cdc7fe88acc8d47",
+    "1f66c2d491d75af915c8db6a6d1cb0cd4f7ddcd5e63d3ba9b83c866c39ef3a2b",
+    "3eec9884b43f58e93ef8deea260004efea2a46344fc5965b1a7dd5d18997efa7",
+    "b29f8f0ccb96977fe777d489d6be9e7ebc19c409b5103568f277611d7ea84894",
+    "56b1f51265b9559876d58d249d0c146d69a103636699874d3f90473550fe3f2c",
+    "1d7a36575e22f5d139ff9cc510fa138505576b63815a94e4b012bfd457caaada",
+    "d0ac507a864ecd0593fa67be7d23134392d00e4007e2534878d9b242e10d7620",
+    "f6c6840b9cf145bb2dccf86e940be0fc098e32e31099d56f7fe087bd5deb5094",
+    "28831a3340070eb1db87c12e05980d5f33e9ef90f83a4817c9f4a0a33227e197",
+    "87632273d629ccb7e1ed1a768fa2ebd51760f32e1c0b867a5d368d5271055c6e",
+    "5c7b29424347964d04275517c5ae14b6b5ea2798b573fc94e6e44a5321600cfb",
+    "e6945042d78bc2c3bd6ec58c511a9fe859c0ad63fde494f5039e0e8232612bd5",
+    "36d56907e2ec745db6e54f0b2e1b2300abcb422e712da588a40d3f1ebbbe02f6",
+    "34db6ee4d0608e5f783650495a3b2f5273c5134e5284e4fdf96627bb16e31e6b",
+    "8e7659fb45a3787d674ae86731faa2538ec0fdf442ab26e9c791fada089467e9",
+    "3006cf198b24f31bb4c7e6346000abc701e827cfbb5df52dcfa42e9ca9ff0802",
+    "f5fd403cb6e8be21472e377ffd805a8c6083ea4803b8485389cc3ebc215f002a",
+    "3731b260eb3f9482e45f1c3f3b9dcf834b75e6eef8c40f461ea27e8b6ed9473d",
+    "9f9dab09c3f5e42855c2de971b659328a2dbc454845f396ffc053f0bb192f8c3",
+    "5e055d25f85fdb98f273e4afe08464c003b70f1ef0677bb5e25706400be620a5",
+    "868bcf3679cb6b500b94418c0b8925f9865530303ae4e4b262591865666a4590",
+    "b3db6bd3897afbd1df3f9644ab21c8050e1f0038a52f7ca95ac0c3de7558cb7a",
+    "8119b3a059ff2cac483e69bcd41d6d27149447914288bbeaee3413e6dcc6d1eb",
+    "10fc58f35fc7fe7ae875524bb5850003005b7f978c0c65e2a965464b6d00819c",
+    "5acd94eb3c578379c1ea58a343ec4fcff962776fe35521e475a0e06d887b2db9",
+    "33daf3a214d6e0d42d2300a7b44b39290db8989b427974cd865db011055a2901",
+    "cfc6572f29afd164a494e64e6f1aeb820c3e7da355144e5124a391d06e9f95ea",
+    "d5312a4b0ef615a331f6352c2ed21dac9e7c36398b939aec901c257f6cbc9e8e",
+    "551d67fefc7b5b9f9fdbf6af57c96c8a74d7e45a002078a7b5ba45c6fde93e33",
+    "d50ac7bd5ca593c656928f38428017fc7ba502854c43d8414950e96ecb405dc3",
+    "0773e18ea1be44fe1a97e239573cfae3e4e95ef9aa9faabeac1274d3ad261604",
+    "e9af0e7ca89330d2b8615d1b4137ca617e21297f2f0ded8e31b7d2ead8714660",
+    "7b124583097f1029a0c74191fe7378c9105acc706695ed1493bb76034226a57b",
+    "ec40057b995476650b3db98e9db75738a8cd2f94d863b906150c56aac19caa6b",
+    "01d9ff729efd39d83784c0fe59c4ae81a67034cb53c943fb818b9d8ae7fc33e5",
+    "00dfb3c696328c76424519a7befe8e0f6c76f947b52767916d24823f735baf2e",
+    "461b799b4d9ceea8d580dcb76d11150d535e1639d16003c3fb7e9d1fd13083a8",
+    "ee03039479e5228fdc551cbde7079d3412ea186a517ccc63e46e9fcce4fe3a6c",
+    "a8cfb543524e7f02b9f045acd543c21c373b4c9b98ac20cec417a6ddb5744e94",
+    "932b794bf89c6edaf5d0650c7c4bad9242b25626e37ead5aa75ec8c64e09dd4f",
+    "16b10c779ce5cfef59c7710d2e68441ea6facb68e9b5f7d533ae0bb78e28bf57",
+    "0f77c76743e7396f9910139f4937d837ae54e21038ac5c0b3fd6ef171a28a7e4",
+    "d7e574b7b952f293e80dde905eb509373f3f6cd109a02208b3c1e924080a20ca",
+    "45666f8c381e3da675563ff8ba23f83bfac30c34abdde6e5c0975ef9fd700cb9",
+    "b24612e454607eb1aba447f816d1a4551ef95fa7247fb7c1f503020a7177f0dd",
+    "7e208861856da42c8bb46a7567f8121362d9fb2496f131a4aa9017cf366cdfce",
+    "5b646bff6ad1100165037a055601ea02358c0f41050f9dfe3c95dccbd3087be0",
+    "746d1dccfed2f0ff1e13c51e2d50d5324375fbd5bf7ca82a8931828d801d43ab",
+    "cb98110d4a6bb97d22feadbc6c0d8930c5f8fc508b2fc5b35328d26b88db19ae",
+    "60b626a033b55f27d7676c4095eababc7a2c7ede2624b472e97f64f96b8cfc0e",
+    "e5b52bc927468df71893eb8197ef820cf76cb0aaf6e8e4fe93ad62d803983104",
+    "056541ae5da9961be2b0a5e895e5c5ba153cbb62dd561a427bad0ffd41923199",
+    "f8fef05a3fa5c9f3eba41638b247b711a99f960fe73aa2f90136aeb20329b888"];
 
 //conversion functions, etc
 function coinType(type){
@@ -137,6 +208,33 @@ function hexXor(hex1, hex2){
     return bintohex(xor);
 }
 
+//decode amount and mask and check against commitment
+function decodeRct(rv, i, der){
+    var key = derivation_to_scalar(der, i);
+    var ecdh = decode_rct_ecdh(rv.ecdhInfo[i], key);
+    console.log(ecdh);
+    var Ctmp = commit(ecdh.amount, ecdh.mask);
+    console.log(Ctmp);
+    if (Ctmp !== rv.outPk[i]){
+        throw "mismatched commitments!";
+    }
+    ecdh.amount = s2d(ecdh.amount);
+    return ecdh;
+}
+
+//rct functions as I need them
+
+//creates a Pedersen commitment from an amount (in scalar form) and a mask
+//C = bG + aH where b = mask, a = amount
+function commit(amount, mask){
+    if (!valid_hex(mask) || mask.length !== 64 || !valid_hex(amount) || amount.length !== 64){
+        throw "invalid amount or mask!";
+    }
+    var C = ge_double_scalarmult_base_vartime(amount, H, mask);
+    return C;
+}
+
+//switch byte order for hex string
 function swapEndian(hex){
     if (hex.length % 2 !== 0){return "length must be a multiple of 2!";}
     var data = "";
@@ -146,15 +244,82 @@ function swapEndian(hex){
     return data;
 }
 
+//switch byte order charwise
+function swapEndianC(string){
+    var data = "";
+    for (var i=1; i <= string.length; i++){
+        data += string.substr(0 - i, 1);
+    }
+    return data;
+}
+
 //for most uses you'll also want to swapEndian after conversion
-function d2h256(decimal){
-    if (typeof decimal !== "string"){throw "decimal number should be entered as a string for precision";}
+//mainly to convert integer "scalars" to usable hexadecimal strings
+function d2h256(integer){
+    if (typeof integer !== "string" && integer.toString().length > 15){throw "integer should be entered as a string for precision";}
     var padding = "";
     for (i = 0; i < 63; i++){
         padding += "0";
     }
-    return (padding + JSBigInt(decimal).toString(16)).slice(-64);
+    return (padding + JSBigInt(integer).toString(16).toLowerCase()).slice(-64);
 }
+
+function d2h(integer){
+    return d2h256(integer);
+}
+
+//integer to scalar
+function d2s(integer){
+    return swapEndian(d2h(integer));
+}
+
+function s2d(scalar){
+    return JSBigInt.parse(swapEndian(scalar), 16).toString();
+}
+
+//integer to mantissa+exp
+function d2m(integer){
+    if (typeof integer !== "string" && integer.toString().length > 15){throw "integer should be entered as a string for precision";}
+    integer = integer.toString();
+    var d = "0";
+    var i = 0;
+    while (d === "0"){
+        i++;
+        d = integer.substr(-i, 1);
+    }
+    i--;
+    var res = {
+        m: integer.slice(0, -i),
+        e: i
+    };
+    return res;
+}
+
+//convert integer string to 64bit "binary" little-endian string
+function d2b(integer){
+    if (typeof integer !== "string" && integer.toString().length > 15){throw "integer should be entered as a string for precision";}
+    var padding = "";
+    for (i = 0; i < 63; i++){
+        padding += "0";
+    }
+    var a = new JSBigInt(integer);
+    if (a.toString(2).length > 64){throw "amount overflows uint64!";}
+    return swapEndianC((padding + a.toString(2)).slice(-64));
+}
+
+//convert integer string to 64bit base 4 little-endian string
+function d2b4(integer){
+    if (typeof integer !== "string" && integer.toString().length > 15){throw "integer should be entered as a string for precision";}
+    var padding = "";
+    for (i = 0; i < 31; i++){
+        padding += "0";
+    }
+    var a = new JSBigInt(integer);
+    if (a.toString(2).length > 64){throw "amount overflows uint64!";}
+    return swapEndianC((padding + a.toString(4)).slice(-32));
+}
+
+//-------------------------------------------------------------------------------------------
 
 //addressestests/gen.html functions
 function allRandom(){
@@ -314,14 +479,9 @@ function encryptMnOld(encrypt){
     }
 }
 
-function encryptMn(encrypt){
+function encryptMnXor(encrypt){
     var mn = (encrypt) ? mn_decode(mnemonic.value, mnDictTag.value) : mn_decode(encMnTag.value, mnDictTag.value);
     var pass = encKeyTag.value;
-    if (encrypt){
-        encMnTag.value = "Encrypting...";
-    } else {
-        mnemonic.value = "Decrypting...";
-    }
     setTimeout(function (encrypt, mn, pass){
         var d = new Date().getTime(); 
         var key = bintohex(SlowHash.string(pass));
@@ -335,6 +495,58 @@ function encryptMn(encrypt){
         }
     }, 50, encrypt, mn, pass);
 }
+
+function encryptMnAdd(encrypt){
+    var mn = (encrypt) ? mn_decode(mnemonic.value, mnDictTag.value) : mn_decode(encMnTag.value, mnDictTag.value);
+    var pass = encKeyTag.value;
+    if (mn.length !== 64){
+        if (encrypt){
+            encMnTag.value = "This method only works with 25 word seeds!";
+        } else {
+            mnemonic.value = "This method only works with 25 word seeds!";
+        }
+        return;
+    }
+    setTimeout(function (encrypt, mn, pass){
+        var d = new Date().getTime(); 
+        var key = sc_reduce32(bintohex(SlowHash.string(pass)));
+        var t = new Date().getTime() - d;
+        console.log("cn_slow_hash time: " + t);
+        var mnResult = (encrypt) ? mn_encode(sc_add(mn, key)) : mn_encode(sc_sub(mn, key));
+        if (encrypt){
+            encMnTag.value = mnResult;
+        } else {
+            mnemonic.value = mnResult;
+        }
+    }, 50, encrypt, mn, pass);
+}
+
+function encryptMnWrap(encrypt){
+    if (encrypt){
+        encMnTag.value = "Encrypting...";
+    } else {
+        mnemonic.value = "Decrypting...";
+    }
+    if (encTypeTag.value === "keccak"){
+        encryptMnOld(encrypt);
+    } else if (encTypeTag.value === "cnxor"){
+        encryptMnXor(encrypt);
+    } else if (encTypeTag.value === "cnadd"){
+        var mn = (encrypt) ? mn_decode(mnemonic.value, mnDictTag.value) : mn_decode(encMnTag.value, mnDictTag.value);
+        if (mn.length !== 64){
+            encTypeTag.value = "cnxor";
+            if (encrypt){
+                encMnTag.value = "You can chosen CN Add with a MyMonero seed. Switching to CN XOR and encrypting...";
+            } else {
+                mnemonic.value = "You can chosen CN Add with a MyMonero seed. Switching to CN XOR and decrypting...";
+            }
+            encryptMnXor(encrypt);
+            return;
+        }
+        encryptMnAdd(encrypt);
+    }
+}
+
 
 //new address = B+C, A, where C is a derived pubkey from the 2fa key
 function deriveAddr(){
@@ -641,6 +853,12 @@ function checkTx(isFundingTx){
     	resultsTag.innerHTML = "<span class='validNo'>Failed to get transaction data! Your Tx Hash probably doesn't exist.</span>";
         throw "Failed to get transaction data!";
     }
+    if (res.transaction_data === null){
+    	resultsTag.innerHTML = "<span class='validNo'>Your transaction exists, but we failed to get its data! MoneroBlocks API probably has not parsed it yet.</span>";
+        throw "Failed to get transaction data!";
+    }
+
+    console.log(res);
     if (typeTag.value === "Private Viewkey"){
         var extra = parseExtra(res.transaction_data.extra);
         var pub = extra.pub;
@@ -657,6 +875,16 @@ function checkTx(isFundingTx){
     for (i = 0; i < outputNum; i++){
         var pubkey = derive_public_key(der, i, spk);
         if (pubkey === res.transaction_data.vout[i].target.key){
+            var rct = res.transaction_data.version === 2 && res.transaction_data.vout[i].amount === 0 ? true : false;
+            if (rct) {
+                try {
+                    var ecdh = decodeRct(res.transaction_data.rct_signatures, i, der);
+                } catch (err) {
+                    resultsTag.innerHTML += "<span class='validNo'>RingCT amount for output " + i + " with pubkey: " + res.transaction_data.vout[i].target.key + " decoded incorrectly! It will not be spendable." + "</span>" + "<br>"; //rct commitment != computed
+                    throw "invalid rct amount";
+                }
+                res.transaction_data.vout[i].amount = ecdh.amount;
+            }
             tot += res.transaction_data.vout[i].amount;
             console.log("You own output " + i + " with pubkey: " + pubkey + " for amount: " + res.transaction_data.vout[i].amount / 1000000000000);
             resultsTag.innerHTML += "<span class='validYes'>This address owns output&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + i + " with pubkey: " + pubkey + " for amount: " + res.transaction_data.vout[i].amount / 1000000000000 + "</span>" + "<br>"; //amount / 10^12
@@ -666,6 +894,14 @@ function checkTx(isFundingTx){
         }
     }
     resultsTag.innerHTML += "<br>" + "Total received: " + tot / 1000000000000; //10^12
+    if (!isFundingTx && extra.paymentId && tot){
+        if (extra.paymentId.length === 16){
+            var decryptedId = hex_xor(extra.paymentId, cn_fast_hash(der + "8d").slice(0,16));
+        } else {
+            var decryptedId = extra.paymentId;
+        }
+        resultsTag.innerHTML += "<br>" + "Found payment ID: " + decryptedId;
+    }
     if (isFundingTx && extra.paymentId !== false){
         resultsTag.innerHTML += "<br>" + "Payment ID found: " + extra.paymentId + " Matches computed hash?: " + (extra.paymentId === dataHashTag.value);
     } else if (isFundingTx){
