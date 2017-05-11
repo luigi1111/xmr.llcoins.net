@@ -114,10 +114,16 @@
 			<h2>Encrypt/Decrypt Mnemonic Seed</h2>
 			<label for="encKey">&nbsp;8. Encryption Key:&nbsp;</label>
 			<input type="text" id="encKey" placeholder="Encryption Key (text)" size="107" />
-			<button onclick="encryptMn(true);">Encrypt</button>
-			<button onclick="encryptMn(false);">Decrypt</button>
-			<button onclick="encryptMnOld(true);">Encrypt (Old)</button>
-			<button onclick="encryptMnOld(false);">Decrypt (Old)</button>
+			<button onclick="encryptMnWrap(true);">Encrypt</button>
+			<button onclick="encryptMnWrap(false);">Decrypt</button>
+			<!--<button onclick="encryptMnOld(true);">Encrypt (Old)</button>
+			<button onclick="encryptMnOld(false);">Decrypt (Old)</button>-->
+			<span>&nbsp;Type:&nbsp;</span>
+			<select id="encType">
+				<option value="keccak">Old (Keccak)</option>
+				<option value="cnxor">CN XOR</option>
+				<option value="cnadd" selected>CN Add</option>
+			</select>
 			<br>
 			<br>
 			<label for="encMn">&nbsp;9. Encrypted Mnemonic Seed:&nbsp;</label>
@@ -126,17 +132,22 @@
 
 			<p>"Encrypt" requires a mnemonic seed in "1." and encrypts it with the key in "8.", placing the result in "9."
 			<br>
-			"Decrypt" requires an encrypted seed in "9." and key in "8.", and places the result in "1."
+			"Decrypt" requires an encrypted seed in "9." and key in "8.", and places the result in "1." Select your method in dropdown menu.
 			<br>
 			<br>
-			Technical details: in the "Old" method, the key was hashed with 10,000 rounds of keccak, then xor&#39;ed with the hex seed to encode as an encrypted mnemonic.
+			Technical details: in the "Old (Keccak)" method, the key was hashed with 10,000 rounds of keccak, then xor&#39;ed with the hex seed to encode as an encrypted mnemonic.
 			<br>
 			I have left the old capability in place in case anyone has already used it and needs to decrypt their seed; <strong>it should not be used going forward.</strong>
 			<br>
 			<br>
-			In the current method, the key is hashed with CryptoNight instead, then used as above. This is much slower in Javascript unfortunately, but has much better KDF characteristics.
+			In the "CN XOR" method, the key is hashed with CryptoNight instead, then used as above. This is much slower in Javascript unfortunately, but has much better KDF characteristics.
 			<br>
-			The resulting encrypted mnemonic has no added characteristics and may be indistinguishable from an unencrypted mnemonic.
+			However, the resulting encrypted mnemonic will most likely not be a well-formed private key and thus might be expected to be encrypted by an attacker.
+			<br>
+			Note MyMonero seeds are not private keys and thus are only compatible with this method (selecting the "CN Add" method with a MyMonero seed will cause it to use this one).
+			<br>
+			<br>
+			In the "CN Add" method, the key is hashed with CryptoNight, then interpreted as a private key/scalar and added to the hex seed. The resulting mnemonic looks exactly the same as an unencrypted one.
 			</p>
 			<br>
 		</div>
