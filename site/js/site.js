@@ -31,7 +31,7 @@ derivedAddrTag, mnemonicPt2Tag,
 derivedSpendKeyTag, derivedViewKeyTag,
 encTypeTag;
 
-var api = "http://moneroblocks.info/api/";
+var api = "https://moneroblocks.info/api/";
 
 window.onload = function(){
     pubAddrNetByte = document.getElementById('pubAddrNetByte');
@@ -487,7 +487,7 @@ function encryptMnXor(encrypt){
         var key = bintohex(SlowHash.string(pass));
         var t = new Date().getTime() - d;
         console.log("cn_slow_hash time: " + t);
-        var mnResult = mn_encode(hex_xor(mn, key.slice(0, mn.length)));
+        var mnResult = mn_encode(hex_xor(mn, key.slice(0, mn.length)), mnDictTag.value);
         if (encrypt){
             encMnTag.value = mnResult;
         } else {
@@ -512,7 +512,7 @@ function encryptMnAdd(encrypt){
         var key = sc_reduce32(bintohex(SlowHash.string(pass)));
         var t = new Date().getTime() - d;
         console.log("cn_slow_hash time: " + t);
-        var mnResult = (encrypt) ? mn_encode(sc_add(mn, key)) : mn_encode(sc_sub(mn, key));
+        var mnResult = (encrypt) ? mn_encode(sc_add(mn, key), mnDictTag.value) : mn_encode(sc_sub(mn, key), mnDictTag.value);
         if (encrypt){
             encMnTag.value = mnResult;
         } else {
@@ -874,8 +874,8 @@ function checkTx(isFundingTx){
     var tot = 0;
     for (i = 0; i < outputNum; i++){
         var pubkey = derive_public_key(der, i, spk);
+        var rct = res.transaction_data.version === 2 && res.transaction_data.vout[i].amount === 0;
         if (pubkey === res.transaction_data.vout[i].target.key){
-            var rct = res.transaction_data.version === 2 && res.transaction_data.vout[i].amount === 0 ? true : false;
             if (rct) {
                 try {
                     var ecdh = decodeRct(res.transaction_data.rct_signatures, i, der);
@@ -890,7 +890,10 @@ function checkTx(isFundingTx){
             resultsTag.innerHTML += "<span class='validYes'>This address owns output&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + i + " with pubkey: " + pubkey + " for amount: " + res.transaction_data.vout[i].amount / 1000000000000 + "</span>" + "<br>"; //amount / 10^12
         } else {
             console.log("You don't own output " + i + " with pubkey: " + res.transaction_data.vout[i].target.key + " for amount: " + res.transaction_data.vout[i].amount / 1000000000000);
-            resultsTag.innerHTML += "<span class='validNo'>This address doesn't own output " + i + " with pubkey: " + res.transaction_data.vout[i].target.key + " for amount: " + res.transaction_data.vout[i].amount / 1000000000000 + "</span>" + "<br>"; //amount / 10^12
+            var resultTemp = "<span class='validNo'>This address doesn't own output " + i + " with pubkey: " + res.transaction_data.vout[i].target.key + " for amount: ";
+            resultTemp += rct ? "Confidential" : res.transaction_data.vout[i].amount / 1000000000000;
+            resultTemp += "</span>" + "<br>";
+            resultsTag.innerHTML += resultTemp; //workaround for tags closing themselves
         }
     }
     resultsTag.innerHTML += "<br>" + "Total received: " + tot / 1000000000000; //10^12
@@ -960,7 +963,7 @@ function signMsg(){
     var sig = generate_signature(msgHash, pub, sec);
     var header = "SigV1";
     sig = header + cnBase58.encode(sig);
-    verifyMessage.value = "-----BEGIN MONERO SIGNED MESSAGE-----" + "\n" + msg + "\n" + "Address: " + address + "\n" + "-----BEGIN SIGNATURE-----" + "\n" + sig + "\n" + "-----END MONERO SIGNED MESSAGE-----";
+    verifyMessage.value = "-----BEGIN MONERO SIGNED MESSAGE-----" + "\n" + msg + "\n" + "-----BEGIN SIGNATURE-----" + "\n" + address + "\n" + sig + "\n" + "-----END MONERO SIGNED MESSAGE-----";
     return;
 }
 
@@ -970,15 +973,17 @@ function verifyMsg(){
         var message = verifyMessage.value;
         message = message.split("\n");
         if (message.length === 6 && message[0] === "-----BEGIN MONERO SIGNED MESSAGE-----"){
-            var hash = keccak_256(message[1]);
             if (message[2].slice(0,8) === "Address:"){
                 var address = message[2].slice(8,9) === " " ? message[2].slice(9) : message[2].slice(8);
             } else if ((message[2].length === 95 || message[2].length === 106) && message[2].slice(0,1) === "4"){
                 var address = message[2];
+            } else if (message[3].length === 95 || message[3].length === 106){
+                var address = message[3];
             } else {
                 verifyResultTag.innerHTML = "<span class='validNo'>Your address could not be parsed!</span>";
                 return;
             }
+            var hash = keccak_256(message[1]);
             var sig = message[4];
         } else if (message.length === 1 || (message.length === 2 && message[1] === "")){
             var sig = message[0];
