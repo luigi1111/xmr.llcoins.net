@@ -40,6 +40,7 @@ var cnUtil = (function(initConfig) {
     var ENCRYPTED_PAYMENT_ID_TAIL = 141;
     var CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX = config.addressPrefix;
     var CRYPTONOTE_PUBLIC_INTEGRATED_ADDRESS_BASE58_PREFIX = config.integratedAddressPrefix;
+    var CRYPTONOTE_PUBLIC_SUBADDRESS_BASE58_PREFIX = 42;
     var UINT64_MAX = new JSBigInt(2).pow(64);
     var CURRENT_TX_VERSION = 1;
     var TX_EXTRA_NONCE_MAX_COUNT = 255;
@@ -140,7 +141,7 @@ var cnUtil = (function(initConfig) {
     function d2h(integer){
         if (typeof integer !== "string" && integer.toString().length > 15){throw "integer should be entered as a string for precision";}
         var padding = "";
-        for (i = 0; i < 63; i++){
+        for (var i = 0; i < 63; i++){
             padding += "0";
         }
         return (padding + JSBigInt(integer).toString(16).toLowerCase()).slice(-64);
@@ -159,7 +160,7 @@ var cnUtil = (function(initConfig) {
     function d2b(integer){
         if (typeof integer !== "string" && integer.toString().length > 15){throw "integer should be entered as a string for precision";}
         var padding = "";
-        for (i = 0; i < 63; i++){
+        for (var i = 0; i < 63; i++){
             padding += "0";
         }
         var a = new JSBigInt(integer);
@@ -171,7 +172,7 @@ var cnUtil = (function(initConfig) {
     function d2b4(integer){
         if (typeof integer !== "string" && integer.toString().length > 15){throw "integer should be entered as a string for precision";}
         var padding = "";
-        for (i = 0; i < 31; i++){
+        for (var i = 0; i < 31; i++){
             padding += "0";
         }
         var a = new JSBigInt(integer);
@@ -191,7 +192,7 @@ var cnUtil = (function(initConfig) {
         var bin1 = hextobin(hex1);
         var bin2 = hextobin(hex2);
         var xor = new Uint8Array(bin1.length);
-        for (i = 0; i < xor.length; i++){
+        for (var i = 0; i < xor.length; i++){
             xor[i] = bin1[i] ^ bin2[i];
         }
         return bintohex(xor);
@@ -407,8 +408,9 @@ var cnUtil = (function(initConfig) {
         var dec = cnBase58.decode(address);
         var expectedPrefix = this.encode_varint(CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX);
         var expectedPrefixInt = this.encode_varint(CRYPTONOTE_PUBLIC_INTEGRATED_ADDRESS_BASE58_PREFIX);
+        var expectedPrefixSub = this.encode_varint(CRYPTONOTE_PUBLIC_SUBADDRESS_BASE58_PREFIX);
         var prefix = dec.slice(0, expectedPrefix.length);
-        if (prefix !== expectedPrefix && prefix !== expectedPrefixInt) {
+        if (prefix !== expectedPrefix && prefix !== expectedPrefixInt && prefix !== expectedPrefixSub) {
             throw "Invalid address prefix";
         }
         dec = dec.slice(expectedPrefix.length);
@@ -439,6 +441,13 @@ var cnUtil = (function(initConfig) {
         }
     };
 
+    this.is_subaddress = function(addr) {
+        var decoded = cnBase58.decode(addr);
+        var subaddressPrefix = this.encode_varint(CRYPTONOTE_PUBLIC_SUBADDRESS_BASE58_PREFIX);
+        var prefix = decoded.slice(0, subaddressPrefix.length);
+        return (prefix === subaddressPrefix);
+    };
+
     this.valid_keys = function(view_pub, view_sec, spend_pub, spend_sec) {
         var expected_view_pub = this.sec_key_to_pub(view_sec);
         var expected_spend_pub = this.sec_key_to_pub(spend_sec);
@@ -446,12 +455,25 @@ var cnUtil = (function(initConfig) {
     };
 
     this.decode_rct_ecdh = function(ecdh, key) {
-        var first = this.hash_to_scalar(key);
-        var second = this.hash_to_scalar(first);
-        return {
-            "mask": sc_sub(ecdh.mask, first),
-            "amount": sc_sub(ecdh.amount, second)
-        };
+        if (ecdh.amount.length !== 16) {
+            //old version
+            var first = this.hash_to_scalar(key);
+            var second = this.hash_to_scalar(first);
+            return {
+                "mask": sc_sub(ecdh.mask, first),
+                "amount": sc_sub(ecdh.amount, second)
+            };
+        } else {
+            //v2, with deterministic mask
+            var mask = this.hash_to_scalar("636f6d6d69746d656e745f6d61736b" + key); //"commitment_mask"
+            var amtkey = this.cn_fast_hash("616d6f756e74" + key); //"amount"
+            var amount = this.hex_xor(ecdh.amount, amtkey.slice(0,16));
+            amount += "000000000000000000000000000000000000000000000000"; //pad to 64 chars
+            return {
+                "mask": mask,
+                "amount": amount
+            };
+        }
     };
 
     this.encode_rct_ecdh = function(ecdh, key) {
@@ -761,6 +783,14 @@ var cnUtil = (function(initConfig) {
     this.ge_sub = function(point1, point2) {
         point2n = ge_neg(point2);
         return ge_add(point1, point2n);
+    };
+    
+    this.sc_check = function(scalar1) {
+        var scalar1_m = Module._malloc(STRUCT_SIZES.EC_SCALAR);
+        Module.HEAPU8.set(hextobin(scalar1), scalar1_m);
+        var r = Module.ccall("sc_check", "number", ["number"], [scalar1_m]) === 0;
+        Module._free(scalar1_m);
+        return r;
     };
 
     //adds two scalars together
@@ -1298,7 +1328,7 @@ var cnUtil = (function(initConfig) {
         buf += this.encode_varint(tx.unlock_time);
         buf += this.encode_varint(tx.vin.length);
         var i, j;
-        for (i = 0; i < tx.vin.length; i++) {
+        for (var i = 0; i < tx.vin.length; i++) {
             var vin = tx.vin[i];
             switch (vin.type) {
                 case "input_to_key":
@@ -1509,7 +1539,7 @@ var cnUtil = (function(initConfig) {
         }
         _ge_dsm_precomp(image_pre_m, image_unp_m);
         _sc_0(sum_m);
-        for (i = 0; i < keys.length; i++) {
+        for (var i = 0; i < keys.length; i++) {
             if (i === real_index) {
                 // Real key
                 var rand = this.random_scalar();
@@ -1670,7 +1700,7 @@ var cnUtil = (function(initConfig) {
         }
         var buf = prefix_hash;
         var sum = d2h256("0"); //zero, should add wrapper for sc_0
-        for (var i = 0; i < pubs.length; i++) {
+        for (i = 0; i < pubs.length; i++) {
             try {
                 buf += this.ge_double_scalarmult_base_vartime(sigar[i].c, pubs[i], sigar[i].r);
                 buf += this.ge_double_scalarmult_postcomp_vartime(sigar[i].r, pubs[i], sigar[i].c, k_image);
@@ -1717,7 +1747,7 @@ var cnUtil = (function(initConfig) {
         var inputs_money = JSBigInt.ZERO;
         var i, j;
         console.log('Sources: ');
-        for (i = 0; i < sources.length; i++) {
+        for (var i = 0; i < sources.length; i++) {
             console.log(i + ': ' + this.formatMoneyFull(sources[i].amount));
             if (sources[i].real_out >= sources[i].outputs.length) {
                 throw "real index >= outputs.length";
@@ -1786,7 +1816,7 @@ var cnUtil = (function(initConfig) {
         if (mix_outs.length !== outputs.length && fake_outputs_count !== 0) {
             throw 'Wrong number of mix outs provided (' + outputs.length + ' outputs, ' + mix_outs.length + ' mix outs)';
         }
-        for (i = 0; i < mix_outs.length; i++) {
+        for (var i = 0; i < mix_outs.length; i++) {
             if ((mix_outs[i].outputs || []).length < fake_outputs_count) {
                 throw 'Not enough outputs to mix with';
             }
