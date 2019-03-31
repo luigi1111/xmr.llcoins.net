@@ -17,4 +17,4 @@ A .zip file is provided of the site for convenient offline use (note: you must h
 
 `gpg --verify site.zip.asc site.zip`
 
-You should get `gpg: Good signature from "luigi1111 <luigi1111w@gmail.com>"`; you can ingore the warning about the key not being certified.
+You should get `gpg: Good signature from "luigi1111 <luigi1111w@gmail.com>"`; you can ignore the warning about the key not being certified.
