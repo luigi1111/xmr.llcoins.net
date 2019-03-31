@@ -202,7 +202,7 @@ function hexXor(hex1, hex2){
     var bin1 = hextobin(hex1);
     var bin2 = hextobin(hex2);
     var xor = new Uint8Array(bin1.length);
-    for (i = 0; i < xor.length; i++){
+    for (var i = 0; i < xor.length; i++){
         xor[i] = bin1[i] ^ bin2[i];
     }
     return bintohex(xor);
@@ -212,9 +212,9 @@ function hexXor(hex1, hex2){
 function decodeRct(rv, i, der){
     var key = derivation_to_scalar(der, i);
     var ecdh = decode_rct_ecdh(rv.ecdhInfo[i], key);
-    console.log(ecdh);
+    //console.log("ecdh: " + ecdh);
     var Ctmp = commit(ecdh.amount, ecdh.mask);
-    console.log(Ctmp);
+    //console.log("C: " + Ctmp);
     if (Ctmp !== rv.outPk[i]){
         throw "mismatched commitments!";
     }
@@ -238,7 +238,7 @@ function commit(amount, mask){
 function swapEndian(hex){
     if (hex.length % 2 !== 0){return "length must be a multiple of 2!";}
     var data = "";
-    for (var i=1; i <= hex.length / 2; i++){
+    for (var i = 1; i <= hex.length / 2; i++){
         data += hex.substr(0 - 2 * i, 2);
     }
     return data;
@@ -247,7 +247,7 @@ function swapEndian(hex){
 //switch byte order charwise
 function swapEndianC(string){
     var data = "";
-    for (var i=1; i <= string.length; i++){
+    for (var i = 1; i <= string.length; i++){
         data += string.substr(0 - i, 1);
     }
     return data;
@@ -258,7 +258,7 @@ function swapEndianC(string){
 function d2h256(integer){
     if (typeof integer !== "string" && integer.toString().length > 15){throw "integer should be entered as a string for precision";}
     var padding = "";
-    for (i = 0; i < 63; i++){
+    for (var i = 0; i < 63; i++){
         padding += "0";
     }
     return (padding + JSBigInt(integer).toString(16).toLowerCase()).slice(-64);
@@ -299,7 +299,7 @@ function d2m(integer){
 function d2b(integer){
     if (typeof integer !== "string" && integer.toString().length > 15){throw "integer should be entered as a string for precision";}
     var padding = "";
-    for (i = 0; i < 63; i++){
+    for (var i = 0; i < 63; i++){
         padding += "0";
     }
     var a = new JSBigInt(integer);
@@ -311,7 +311,7 @@ function d2b(integer){
 function d2b4(integer){
     if (typeof integer !== "string" && integer.toString().length > 15){throw "integer should be entered as a string for precision";}
     var padding = "";
-    for (i = 0; i < 31; i++){
+    for (var i = 0; i < 31; i++){
         padding += "0";
     }
     var a = new JSBigInt(integer);
@@ -717,7 +717,7 @@ function addrCheck(){
         var netbyte = addrHex.slice(0,2);
     }
     coins = {};
-    for (i = 0; i < coinTypeTag.getElementsByTagName('option').length; i++){
+    for (var i = 0; i < coinTypeTag.getElementsByTagName('option').length; i++){
         coins[coinTypeTag.getElementsByTagName('option')[i].value] = coinTypeTag.getElementsByTagName('option')[i].innerHTML;
     }
     //viewkey + pID stuff
@@ -782,7 +782,7 @@ function clearAddr(){
 }
 
 
-//for checktx.html
+//for checktx.html -- need to add support for multiple tx pubkeys at some point...
 function parseExtra(bin){
     var extra = {
         pub: false,
@@ -830,7 +830,7 @@ function checkTx(isFundingTx){
         }
     }
     if (err === 0 && typeTag.value === "Private Viewkey"){
-        if (addrHex.slice(66,130) !== sec_key_to_pub(sec)){
+        if (addrHex.slice(66,130) !== sec_key_to_pub(sec) && !is_subaddress(addr)){
             resultsTag.innerHTML += "<span class='validNo'>Your View Key doesn't match your address. Please check it and try again.</span><br>"
             err = 1;
         }
@@ -860,7 +860,7 @@ function checkTx(isFundingTx){
 
     console.log(res);
     if (typeTag.value === "Private Viewkey"){
-        var extra = parseExtra(res.transaction_data.extra);
+        var extra = parseExtra(res.transaction_data.extra); //need to add support for multiple txpubkeys due to subaddresses...
         var pub = extra.pub;
         if (!pub){
             resultsTag.innerHTML = "<span class='validNo'>Unrecognized tx_extra format! Please let luigi1111 know what tx hash you were using.</span>"
@@ -872,7 +872,7 @@ function checkTx(isFundingTx){
     var outputNum = res.transaction_data.vout.length;
     var der = generate_key_derivation(pub, sec);
     var tot = 0;
-    for (i = 0; i < outputNum; i++){
+    for (var i = 0; i < outputNum; i++){
         var pubkey = derive_public_key(der, i, spk);
         var rct = res.transaction_data.version === 2 && res.transaction_data.vout[i].amount === 0;
         if (pubkey === res.transaction_data.vout[i].target.key){
