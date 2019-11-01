@@ -81,7 +81,68 @@ window.onload = function(){
     derivedViewKeyTag = document.getElementById('derivedViewKey');
     if (dataHashTag !== null){
         hashUpdate(document.getElementById('theData').value);
+    }//BrainWallet
+    bw_phrase = document.getElementById('bw_input');
+    bw_hexSeed = document.getElementById('bw_hexSeed');
+    bw_privSpend = document.getElementById('bw_privSpend');
+    bw_pubSpend = document.getElementById('bw_pubSpend');
+    bw_privView = document.getElementById('bw_privView');
+    bw_pubView = document.getElementById('bw_pubView');
+    bw_pubAddr = document.getElementById('bw_pubAddr');
+    bw_mnemonic = document.getElementById('bw_mnemonic');
+}
+
+//BrainWallet, blame Taushet if there is an error here, not Luigi1111
+function bwGen() {
+	
+	//Clear
+	bw_hexSeed.value = "";
+    bw_privSpend.value = "";
+    bw_pubSpend.value = "";
+    bw_privView.value = "";
+    bw_pubView.value = "";
+    bw_pubAddr.value = "";
+	
+	//Generate Hex Seed
+	var hs = keccak_256(bw_phrase.value);
+	
+	//Generate Keys
+    var pID = "";
+    var netbyte = pubAddrNetByte.value;
+    if (netbyte === "11"){
+        if (hs.length == 64){
+            var privSk = sc_reduce32(hs);
+            var privVk = sc_reduce32(cn_fast_hash(sec_key_to_pub(privSk)));
+        } else {
+            var privSk = sc_reduce32(cn_fast_hash(hs));
+            var privVk = sc_reduce32(cn_fast_hash(sec_key_to_pub(privSk)));
+        }
+    } else {
+        if (hs.length == 64){
+            var privSk = sc_reduce32(hs);
+            var privVk = sc_reduce32(cn_fast_hash(privSk));
+        } else {
+            var privSk = sc_reduce32(cn_fast_hash(hs));
+            var privVk = sc_reduce32(cn_fast_hash(cn_fast_hash(hs)));
+        }
+        if (netbyte === "13"){
+            pID = rand_32().slice(0,16);
+        }
     }
+    var pubVk = sec_key_to_pub(privVk);
+    var pubSk = sec_key_to_pub(privSk);
+    var address = toPublicAddr(netbyte, pubSk, pubVk, pID);
+	
+	//Generate MN
+	bw_mnemonic.value = mn_encode(hs, mnDictTag.value)
+	
+	//Publish
+    bw_hexSeed.value = hs;
+    bw_privSpend.value = privSk;
+    bw_pubSpend.value = pubSk;
+    bw_privView.value = privVk;
+    bw_pubView.value = pubVk;
+    bw_pubAddr.value = address;
 }
 
 //RCT amount base
