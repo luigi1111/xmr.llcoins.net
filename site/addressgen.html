@@ -14,7 +14,8 @@
 	<script src="js/sha3.js"></script>
 	<script src="js/cn_util.js?2"></script>
 	<script src="js/site.js"></script>
-   
+	<script src="js/hidepw.js"></script>
+
 	<style>
 	input {font-family: Lucida Console, monospace;}
 	.centerDiv {width: 1260px; margin: 0 auto;}
@@ -113,7 +114,7 @@
 		<div id="enc-wrapper">
 			<h2>Encrypt/Decrypt Mnemonic Seed</h2>
 			<label for="encKey">&nbsp;8. Encryption Key:&nbsp;</label>
-			<input type="text" id="encKey" placeholder="Encryption Key (text)" size="107" />
+			<input type="password" id="encKey" placeholder="Encryption Key (text)" size="107" />
 			<button onclick="encryptMnWrap(true);">Encrypt</button>
 			<button onclick="encryptMnWrap(false);">Decrypt</button>
 			<!--<button onclick="encryptMnOld(true);">Encrypt (Old)</button>
@@ -124,6 +125,7 @@
 				<option value="cnxor">CN XOR</option>
 				<option value="keccak">Old (Keccak)</option>
 			</select>
+			<input type="checkbox" onclick="showKey('encKey')">Show key
 			<br>
 			<br>
 			<label for="encMn">&nbsp;9. Encrypted Mnemonic Seed:&nbsp;</label>
@@ -155,7 +157,8 @@
 		<div id="fake-multisig-wrapper">
 			<h2>Ice Cold Storage, One-Time-Use 2FA Account</h2>
 			<label for="encKey2">&nbsp;10. 2FA Key:&nbsp;</label>
-			<input type="text" id="encKey2" placeholder="User B 2FA Key (text)" size="66" />
+			<input type="password" id="encKey2" placeholder="User B 2FA Key (text)" size="66" />
+			<input type="checkbox" onclick="showKey('encKey2')">Show key
 			<h3>&nbsp;Generating:</h3>
 			<label for="addrPt2">&nbsp;11. Public Address:&nbsp;</label>
 			<input type="text" id="addrPt2" placeholder="User A Public Address" size="107" />
