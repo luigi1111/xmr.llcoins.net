@@ -14,6 +14,7 @@
 	<script src="js/site.js"></script>
 	<script src="js/qrcode.js"></script>
 	<script src="js/sha3.js"></script>
+	<script src="js/hidepw.js"></script>
    
 	<style>
 	input {font-family: Lucida Console, monospace;}
@@ -48,12 +49,14 @@
 		<br>
 		<br>
 		<label for="private">&nbsp;2. Private Key:</label>
-		<input class="boxes" type="text" id="private" placeholder="64 hex chars" size="91" />
+		<input type="password" class="boxes" id="private" placeholder="64 hex chars" size="91" />
+		<br>
 		<select id="type">
 			<option>Private Spendkey</option>
 			<option>Private Viewkey</option>
 		</select>
-
+		<input type="checkbox" onclick="showKey('private')">Show key
+		
 		<br>
 		<br>
 	
